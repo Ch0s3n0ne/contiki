@@ -27,39 +27,20 @@
  * SUCH DAMAGE.
  *
  */
-/*---------------------------------------------------------------------------*/
-#ifndef PROJECT_CONF_H_
-#define PROJECT_CONF_H_
 
-/* Comment this out to use Radio Duty Cycle (RDC) and save energy */
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC          nullrdc_driver
+#ifndef PROJECT_RPL_WEB_CONF_H_
+#define PROJECT_RPL_WEB_CONF_H_
 
-#undef IEEE802154_CONF_PANID
-#define IEEE802154_CONF_PANID      0xABCD
-
-#ifndef QUEUEBUF_CONF_NUM
+#undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM          4
-#endif
 
 #undef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE       256
+#define UIP_CONF_BUFFER_SIZE    140
 
-#ifndef UIP_CONF_RECEIVE_WINDOW
-#define UIP_CONF_RECEIVE_WINDOW    60
-#endif
+#undef UIP_CONF_RECEIVE_WINDOW
+#define UIP_CONF_RECEIVE_WINDOW  60
 
-#ifndef WEBSERVER_CONF_CFS_CONNS
-#define WEBSERVER_CONF_CFS_CONNS   2
-#endif
+#undef WEBSERVER_CONF_CFS_CONNS
+#define WEBSERVER_CONF_CFS_CONNS 2
 
-/* The following are Zoul (RE-Mote, etc) specific */
-#undef CC2538_RF_CONF_CHANNEL
-#define CC2538_RF_CONF_CHANNEL     26
-
-
-#define BROADCAST_CHANNEL     129
-
-/*---------------------------------------------------------------------------*/
-#endif /* PROJECT_CONF_H_ */
-
+#endif /* PROJECT_RPL_WEB_CONF_H_ */

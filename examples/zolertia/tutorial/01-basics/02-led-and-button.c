@@ -87,7 +87,7 @@ PROCESS_THREAD(led_button_process, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event && data == &button_sensor);
 
     /* When the user button is pressed, we toggle the LED on/off... */
-    leds_toggle(LEDS_GREEN);
+    leds_toggle(LEDS_YELLOW);
 
     /* To try different LED combinations try and replace "LEDS_GREEN" with:
      * - LEDS_RED

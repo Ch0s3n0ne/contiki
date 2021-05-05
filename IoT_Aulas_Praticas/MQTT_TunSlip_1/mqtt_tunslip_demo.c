@@ -57,7 +57,7 @@ AUTOSTART_PROCESSES(&mqtt_tunslip_publish_process);
 #define DEFAULT_PUBLISH_TOPIC     "deec/send"
 #define DEFAULT_SUBSCRIBE_TOPIC   "deec/receive"
 #define DEFAULT_BROKER_PORT       1883
-#define DEFAULT_PUBLISH_INTERVAL     (10* CLOCK_SECOND)
+#define DEFAULT_PUBLISH_INTERVAL     (5 * CLOCK_SECOND)
 #define DEFAULT_KEEP_ALIVE_TIMER     60
 
 /* Maximum TCP segment size for outgoing segments of our socket */
@@ -387,7 +387,6 @@ static void publish_temperature(void)
 
   seq_nr_value++;
   buf_ptr = app_buffer;
- 
 
 /*
 {"Id": 1950, "Timestamp": 21000, "Temp": 25.952}
@@ -586,7 +585,7 @@ PROCESS_THREAD(mqtt_tunslip_publish_process, ev, data)
 #if USE_TUNSLIP6
   /* Request prefix until it has been received */
   while(!prefix_set) {
-    etimer_set(&buf_ptr, CLOCK_SECOND);
+    etimer_set(&et, CLOCK_SECOND);
     request_prefix();
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   }

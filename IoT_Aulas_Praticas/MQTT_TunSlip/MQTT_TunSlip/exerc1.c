@@ -13,11 +13,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 
 #define USE_TUNSLIP6 1
 
 #define DEBUG 1 //DEBUG_NONE
-#include "net/ip/uip-debug.h"
+#include "net/ip/uip-debug.h"dev/rtcc.h
 
 #include "contiki-conf.h"
 #include "rpl/rpl-private.h"
@@ -30,6 +31,17 @@
 #include "dev/leds.h"
 #include "dev/adc-zoul.h"
 #include "dev/zoul-sensors.h"
+
+//----------------------------------------------
+#include "cpu.h"
+#include "sys/process.h"
+#include "dev/sys-ctrl.h"
+#include "lib/list.h"
+#include "platform/zoul/remote-revb/power-mgmt.h"
+#include "dev/rtcc.h"
+#include <stdio.h>
+#include <stdint.h>
+//-----------------------------------
 
 static uip_ipaddr_t prefix;
 static uint8_t prefix_set;
@@ -57,7 +69,7 @@ AUTOSTART_PROCESSES(&mqtt_tunslip_publish_process);
 #define DEFAULT_PUBLISH_TOPIC     "deec/send"
 #define DEFAULT_SUBSCRIBE_TOPIC   "deec/receive"
 #define DEFAULT_BROKER_PORT       1883
-#define DEFAULT_PUBLISH_INTERVAL     (10* CLOCK_SECOND)
+#define DEFAULT_PUBLISH_INTERVAL     (5 * CLOCK_SECOND)
 #define DEFAULT_KEEP_ALIVE_TIMER     60
 
 /* Maximum TCP segment size for outgoing segments of our socket */
@@ -384,6 +396,7 @@ static void publish_temperature(void)
   int len;
   uint16_t aux;
   int remaining = APP_BUFFER_SIZE;
+  static uint16_t voltage;
 
   seq_nr_value++;
   buf_ptr = app_buffer;
@@ -418,6 +431,25 @@ static void publish_temperature(void)
   remaining -= len;
   buf_ptr += len;
 
+    /*uint16_t bateria = battery_sensor.value(0);
+    double mv = (bateria * 2.500 * 2) / 4096;
+    printf("Battery: %i (%ld.%03d mV)\n", bateria, (long)mvPM_SUCCESS,
+           (unsigned)((mv - floor(mv)) * 1000));*/
+
+  if(pm_get_voltage(&voltage) != PM_SUCCESS) {
+    printf("PM: error retrieving voltage\n");
+  }
+
+  printf("PM: Voltage (raw) = %u\n", voltage);
+
+  len = snprintf(buf_ptr, remaining, ",\"Volt\":\"%u\"", voltage);
+
+  remaining -= len;
+  buf_ptr += len;
+
+  
+  
+
   len = snprintf(buf_ptr, remaining, "}");
 
   if(len < 0 || len >= remaining) {
@@ -425,10 +457,10 @@ static void publish_temperature(void)
     return;
   }
 
-  mqtt_publish(&conn, NULL, pub_topic, (uint8_t *)app_buffer,
-               strlen(app_buffer), MQTT_QOS_LEVEL_0, MQTT_RETAIN_OFF);
+  /*mqtt_publish(&conn, NULL, pub_topic, (uint8_t *)app_buffer,
+               strlen(app_buffer), MQTT_QOS_LEVEL_0, MQTT_RETAIN_OFF);*/
 
-  printf("APP - Publish to %s: %s\n", pub_topic, app_buffer);
+  //printf("APP - Publish to %s: %s\n", pub_topic, app_buffer);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -566,7 +598,8 @@ PROCESS_THREAD(mqtt_tunslip_publish_process, ev, data)
 #endif
 
   PROCESS_BEGIN();
-
+  
+  
 #if USE_TUNSLIP6
 /* While waiting for the prefix to be sent through the SLIP connection, the future
  * border router can join an existing DAG as a parent or child, or acquire a default

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,53 +26,37 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
- *
  */
-/*---------------------------------------------------------------------------*/
+
 /**
  * \file
- *         An example of how to use the button and read the ADC ports
+ *         A simple wget implementation
  * \author
+ *         Niclas Finne <nfi@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
  */
-/*---------------------------------------------------------------------------*/
-#include <stdio.h>
+
+#ifndef WGET_H_
+#define WGET_H_
+
 #include "contiki.h"
-#include "dev/button-sensor.h"
-#include "dev/leds.h"
-#include "dev/z1-phidgets.h"
-/*---------------------------------------------------------------------------*/
-PROCESS(test_button_process, "Test Button & ADC");
-AUTOSTART_PROCESSES(&test_button_process);
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(test_button_process, ev, data)
-{
-  /* static struct etimer et; */
-  PROCESS_BEGIN();
-  SENSORS_ACTIVATE(phidgets);
-  SENSORS_ACTIVATE(button_sensor);
 
-  while(1) {
-    printf("Please press the User Button\n");
+struct wget_callbacks {
+  void (*data)(const char *data, uint16_t len);
+  void (*done)(int status);
+};
 
-    PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event &&
-                             data == &button_sensor);
+void wget_init(void);
+int wget_get(const char *server, uint16_t port, const char *file,
+             const struct wget_callbacks *c);
 
-    leds_toggle(LEDS_GREEN);
+enum {
+  WGET_OK,
+  WGET_ALREADY_RUNNING,
+  WGET_TIMEDOUT,
+  WGET_ABORTED,
+  WGET_CONNECT_FAILED,
+  WGET_CLOSED
+};
 
-    printf("Phidget 5V 1:%d\n", phidgets.value(PHIDGET5V_1));
-    printf("Phidget 5V 2:%d\n", phidgets.value(PHIDGET5V_2));
-    printf("Phidget 3V 1:%d\n", phidgets.value(PHIDGET3V_1));
-    printf("Phidget 3V 2:%d\n", phidgets.value(PHIDGET3V_2));
-
-    if(phidgets.value(PHIDGET3V_1) < 100) {
-      leds_on(LEDS_RED);
-    } else {
-      leds_off(LEDS_RED);
-    }
-  }
-  
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
+#endif /* WGET_H_ */

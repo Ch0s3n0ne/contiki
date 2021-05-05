@@ -95,7 +95,8 @@ dht22_read(void)
      * if the line is high between 70-74us the bit sent will be "1" (one).
      */
     GPIO_SET_INPUT(DHT22_PORT_BASE, DHT22_PIN_MASK);
-    last_state = GPIO_READ_PIN(DHT22_PORT_BASE, DHT22_PIN_MASK);
+    last_state = 0xFF;
+
 
     for(i = 0; i < DHT22_MAX_TIMMING; i++) {
       counter = 0;

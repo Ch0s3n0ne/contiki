@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,53 +26,37 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
- *
  */
 /*---------------------------------------------------------------------------*/
-/**
- * \file
- *         An example of how to use the button and read the ADC ports
- * \author
- *         Joakim Eriksson <joakime@sics.se>
- */
+#ifndef PROJECT_CONF_H_
+#define PROJECT_CONF_H_
+
+/* Comment this out to use Radio Duty Cycle (RDC) and save energy */
+#undef NETSTACK_CONF_RDC
+#define NETSTACK_CONF_RDC          nullrdc_driver
+
+#undef IEEE802154_CONF_PANID
+#define IEEE802154_CONF_PANID      0xABCD
+
+#ifndef QUEUEBUF_CONF_NUM
+#define QUEUEBUF_CONF_NUM          4
+#endif
+
+#undef UIP_CONF_BUFFER_SIZE
+#define UIP_CONF_BUFFER_SIZE       256
+
+#ifndef UIP_CONF_RECEIVE_WINDOW
+#define UIP_CONF_RECEIVE_WINDOW    60
+#endif
+
+#ifndef WEBSERVER_CONF_CFS_CONNS
+#define WEBSERVER_CONF_CFS_CONNS   2
+#endif
+
+/* The following are Zoul (RE-Mote, etc) specific */
+#undef CC2538_RF_CONF_CHANNEL
+#define CC2538_RF_CONF_CHANNEL     26
+
+
 /*---------------------------------------------------------------------------*/
-#include <stdio.h>
-#include "contiki.h"
-#include "dev/button-sensor.h"
-#include "dev/leds.h"
-#include "dev/z1-phidgets.h"
-/*---------------------------------------------------------------------------*/
-PROCESS(test_button_process, "Test Button & ADC");
-AUTOSTART_PROCESSES(&test_button_process);
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(test_button_process, ev, data)
-{
-  /* static struct etimer et; */
-  PROCESS_BEGIN();
-  SENSORS_ACTIVATE(phidgets);
-  SENSORS_ACTIVATE(button_sensor);
-
-  while(1) {
-    printf("Please press the User Button\n");
-
-    PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event &&
-                             data == &button_sensor);
-
-    leds_toggle(LEDS_GREEN);
-
-    printf("Phidget 5V 1:%d\n", phidgets.value(PHIDGET5V_1));
-    printf("Phidget 5V 2:%d\n", phidgets.value(PHIDGET5V_2));
-    printf("Phidget 3V 1:%d\n", phidgets.value(PHIDGET3V_1));
-    printf("Phidget 3V 2:%d\n", phidgets.value(PHIDGET3V_2));
-
-    if(phidgets.value(PHIDGET3V_1) < 100) {
-      leds_on(LEDS_RED);
-    } else {
-      leds_off(LEDS_RED);
-    }
-  }
-  
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
+#endif /* PROJECT_CONF_H_ */

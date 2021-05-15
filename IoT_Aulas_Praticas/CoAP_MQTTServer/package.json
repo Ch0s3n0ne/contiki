@@ -1,0 +1,24 @@
+{
+  "name": "iot-coap-server",
+  "version": "1.0.0",
+  "description": "IoT Class CoAP Server",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^11.12.0",
+    "aws-sdk": "^2.906.0",
+    "coap": "^0.23.1",
+    "express": "^4.17.1",
+    "ip": "^1.1.5",
+    "mosca": "^2.8.3",
+    "mqtt": "^2.18.8",
+    "pg": "^7.9.0",
+    "pg-promise": "^8.6.4",
+    "restify": "^8.2.0",
+    "socket.io": "^2.2.0"
+  }
+}

@@ -1,0 +1,101 @@
+/* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+SPDX-License-Identifier: Apache-2.0
+
+ABOUT THIS NODE.JS EXAMPLE: This example works with AWS SDK for JavaScript version 3 (v3),
+which is available at https://github.com/aws/aws-sdk-js-v3. This example is in the 'AWS SDK for JavaScript v3 Developer Guide' at
+https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/dynamodb-examples-using-tables.html.
+
+Purpose:
+ddb_createtable.js demonstrates how to create an Amazon DynamoDB table.
+
+Inputs (replace in code):
+- REGION
+- TABLE_NAME
+- ATTRIBUTE_NAME_1: the name of the partition key
+- ATTRIBUTE_NAME_2: the name of the sort key (optional)
+- ATTRIBUTE_TYPE: the type of the attribute (e.g., N [for a number], S [for a string] etc.)
+
+Running the code:
+ts-node ddb_createtable.js
+*/
+
+// snippet-start:[dynamodb.JavaScript.table.createTableV3]
+// Import required AWS SDK clients and commands for Node.js
+const { CreateTableCommand ,
+        DynamoDBClient}=require("@aws-sdk/client-dynamodb");
+        
+// Set the AWS Region.
+const REGION = "eu-west-1"; //e.g. "us-east-1"
+// Create an Amazon S3 service client object.
+const ddbClient = new DynamoDBClient({ region: REGION });
+
+
+const { DynamoDBDocumentClient} = require( "@aws-sdk/lib-dynamodb");
+
+
+const marshallOptions = {
+    // Whether to automatically convert empty strings, blobs, and sets to `null`.
+    convertEmptyValues: false, // false, by default.
+    // Whether to remove undefined values while marshalling.
+    removeUndefinedValues: false, // false, by default.
+    // Whether to convert typeof object to map attribute.
+    convertClassInstanceToMap: false, // false, by default.
+};
+
+const unmarshallOptions = {
+    // Whether to return numbers as a string instead of converting them to native JavaScript numbers.
+    wrapNumbers: false, // false, by default.
+};
+
+const translateConfig = { marshallOptions, unmarshallOptions };
+
+// Create the DynamoDB Document client.
+const ddbDocClient = DynamoDBDocumentClient.from(ddbClient, translateConfig);
+
+
+// Set the parameters
+const params = {
+  AttributeDefinitions: [
+    {
+      AttributeName: "Season",
+      AttributeType: "N",
+    },
+    {
+      AttributeName: "Episode",
+      AttributeType: "N",
+    }
+  ],
+  KeySchema: [
+    {
+      AttributeName: "Season",
+      KeyType: "HASH",
+    },
+    {
+      AttributeName: "Episode",
+      KeyType: "RANGE",
+    }
+  ],
+  ProvisionedThroughput: {
+    ReadCapacityUnits: 1,
+    WriteCapacityUnits: 1,
+  },
+  TableName: "EPISODES_TABLE",
+  StreamSpecification: {
+    StreamEnabled: false,
+  },
+};
+
+
+const run = async () => {
+  try {
+    const data = await ddbClient.send(new CreateTableCommand(params));
+    console.log("Table Created", data);
+    return data;
+  } catch (err) {
+    console.log("Error", err);
+  }
+};
+run();
+// snippet-end:[dynamodb.JavaScript.table.createTableV3]
+// For unit tests only.
+// module.exports ={run, params};

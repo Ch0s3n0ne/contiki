@@ -6,7 +6,7 @@ import sys
 # Parameters:
 CLOUD_MQTT_URL = "a2yat24nuqf2ua-ats.iot.us-east-2.amazonaws.com"
 CERTIFICATE_AUTH_FILE = "../iot_certs/root_CA_AWS.txt"
-CERT_PEM_FILE = "../iot_certs/"
+CERT_PEM_FILE = "../iot_certs/de649b3223-certificate.pem.crt"
 PRIVATE_KEY_FILE = "../iot_certs/de649b3223-private.pem.key"
 MQTT_TOPIC = "test_topic"
 
@@ -29,13 +29,13 @@ pub_count = 0
 print("Setup a publisher in topic: \""+MQTT_TOPIC+"\"")
 
 while True:
-   try: 
-        print("publishing: msg "+ str(pub_count))
-  	client.publish(MQTT_TOPIC,"msg "+ str(pub_count))
-	pub_count+=1
-	#wait to allow publishing continuously
-	time.sleep(2)
-   except (KeyboardInterrupt):
-        sys.exit()
+  try: 
+    print("publishing: msg "+ str(pub_count))
+    client.publish(MQTT_TOPIC,"msg "+ str(pub_count))
+    pub_count+=1
+    #wait to allow publishing continuously
+    time.sleep(2)
+  except (KeyboardInterrupt):
+    sys.exit()          
 
 

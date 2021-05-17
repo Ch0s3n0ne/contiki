@@ -66,13 +66,22 @@ function room_register(){
 
 function titulo(){
 
-   return('<h2 id="titulo">Sala 1 :</h2>')
+    var x=''
+    if (Number.isNaN(sala)) {
+        x+='<h2 id="titulo">Sala 1 :</h2>'
+    }
+    else{
+        x+='<h2 id="titulo">Sala '+sala+ ' :</h2>'
+    }
+    
+    return(x)
 
 }
 
 
 app.get('/', (req, res) => {
-    console.log(req.query)
+    var conv=req.query.sala+''
+    sala=parseInt(conv)
     res.send(
         `<html>
         <head>
@@ -243,8 +252,7 @@ app.get('/', (req, res) => {
         
         <script type="text/javascript">
             
-            var sala=1
-    
+            var get=''
             function mudar_dados(i){
                 document.getElementById('dados'+i).src="images/grey_server.png"
                 document.getElementById('def'+i).src="images/def_white.png"
@@ -268,14 +276,14 @@ app.get('/', (req, res) => {
         
             function mudar_ac(){
     
-            
-                //var titulo=document.getElementById('titulo').innerHTML;
+                var titulo=document.getElementById('titulo').innerHTML;
     
-                //var titulo_sep = titulo.split(" ");
+                var titulo_sep = titulo.split(" ");
     
-                //i=titulo_sep[1];
+                sala=titulo_sep[1];
     
-                console.log(titulo_sep[1])
+                //console.log(titulo_sep[1])
+                console.log(sala)
     
                 if(document.getElementById('ar_condicionado').innerHTML=="Desactivar Ar condicionado"){
         
@@ -292,10 +300,12 @@ app.get('/', (req, res) => {
                     var list = document.getElementById('lista');
                     var entry = document.createElement('li');
                     entry.appendChild(document.createTextNode(dateTime));
-                    entry.appendChild(document.createTextNode('Ar condicionado ativado sala: '));
+                    entry.appendChild(document.createTextNode('Ar condicionado desativado sala: '));
                     //console.log(i)
                     entry.appendChild(document.createTextNode(sala));
                     list.appendChild(entry);
+                    
+                    get+='&'+dateTime+'Ar condicionado desativado sala: '+sala
         
                 }
                 else{
@@ -312,21 +322,21 @@ app.get('/', (req, res) => {
                     var list = document.getElementById('lista');
                     var entry = document.createElement('li');
                     entry.appendChild(document.createTextNode(dateTime));
-                    entry.appendChild(document.createTextNode('Ar condicionado desativado sala: '));
+                    entry.appendChild(document.createTextNode('Ar condicionado ativado sala: '));
                     console.log(sala)
-                    entry.appendChild(document.createTextNode(i));
+                    entry.appendChild(document.createTextNode(sala));
                     list.appendChild(entry);
+
+                    get+='&'+dateTime+'Ar condicionado ativado sala: '+sala
         
                     console.log(entry)
                 }         
             }
             
-            function mudar_sala(i){
-                
+            function mudar_sala(i){              
                 sala=i
-                document.getElementById('titulo').innerHTML='Sala '+i+' :'
-                location.replace('http://localhost:8080/?sala='+i)
-                console.log("mudar url")
+                //location.replace('http://localhost:8080/?sala='+i)
+                console.log(get)
             }
     
             /*var intervalId = setInterval(function(){
@@ -340,6 +350,8 @@ app.get('/', (req, res) => {
       `)
   })
 
-app.listen(port)
+  app.listen(port,() => {
+    console.log(`server started a http://localhost:${port}.`);
+  })
 
   

@@ -39,22 +39,37 @@ var intervalId = setInterval(function () {
     l = l + 1;
 }, 5000);
 function nodos() {
-    console.log(nodos_mostrar);
     var x = '';
+    var print2 = '';
+    var print1 = '';
+    var print11 = '';
+    var print21 = '';
     for (var i = 0; i < nr_nodos; i++) {
+        if (nodos_mostrar.includes(i + 1)) {
+            print2 = 'mostrar';
+            print1 = 'lista_dados';
+            print11 = 'grey_server.png';
+            print21 = 'def_white.png';
+        }
+        else {
+            print2 = 'lista_def';
+            print1 = 'mostrar';
+            print11 = 'white_server.png';
+            print21 = 'def_grey.png';
+        }
         x += '<ul class="menu" id="menu' + (i + 1) + '">';
         x += '<li>';
-        x += '        <a class="def" onclick="mudar_dados(' + (i + 1) + ')"><img style="height:88px; width: 98px " id="dados' + (i + 1) + '" src="images/grey_server.png"></a><br>';
-        x += '<a class="def" onclick="mudar_def(' + (i + 1) + ')"><img id="def' + (i + 1) + '" src="images/def_white.png"></a>';
+        x += '        <a class="def" onclick="mudar_dados(' + (i + 1) + ')"><img style="height:88px; width: 98px " id="dados' + (i + 1) + '" src="images/' + print11 + '"></a><br>';
+        x += '<a class="def" onclick="mudar_def(' + (i + 1) + ')"><img id="def' + (i + 1) + '" src="images/' + print21 + '"></a>';
         x += '</li>';
         x += '<li>';
-        x += '<ul class="lista_dados" id="lista_dados' + (i + 1) + '" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 300px">';
+        x += '<ul class="' + print1 + '" id="lista_dados' + (i + 1) + '" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 300px">';
         x += '<li>ID: 1</li>';
         x += '<li>Temperatura: ' + l + '</li>';
         x += '<li>Humidade: </li>';
         x += '<li>Fumo: </li>';
         x += '</ul> ';
-        x += '<ul class="mostrar" id="lista_def' + (i + 1) + '" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 400px">';
+        x += '<ul class="' + print2 + '" id="lista_def' + (i + 1) + '" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 400px">';
         x += '<form action="#" onsubmit="return validateFormOnSubmit(this);" style="margin-left: 5px;">';
         x += '<label style="margin-top: 5px;" for="sala">Sala:</label><br>';
         x += '<input type="number" id="sala" name="sala" value="1"><br><br>';

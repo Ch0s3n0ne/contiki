@@ -42,11 +42,11 @@ const run = async () => {
   }
 };
 
-var intervalId = setInterval(function(){
+/*var intervalId = setInterval(function(){
   run();
-}, 5000);
+}, 5000);*/
 
-
+run();
 
 app.get("/",(req,res)=>{
   res.send(`<html>

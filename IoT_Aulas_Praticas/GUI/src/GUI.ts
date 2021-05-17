@@ -5,8 +5,40 @@ const app=express();
 const port = 8080;
 app.use(express.static(__dirname + '/public'));
 
-var nr_salas=3;
+var nr_nodos=3;
 var sala=1;
+var string_mensagens=''
+
+var nodos_mostrar=[];
+
+
+
+for (let index = 1; index <= nr_nodos; index++) {
+      
+  nodos_mostrar.push(index)
+}
+
+
+
+function mostrar_adicionar(i){
+  console.log("empurrou111")
+  if (nodos_mostrar.includes(i)) {
+    console.log("empurrou111")
+  }else{
+    nodos_mostrar.push(i)
+    console.log("empurrou")
+  }
+
+}
+
+function mostrar_remover(i){
+  if (nodos_mostrar.includes(i)) {
+    nodos_mostrar.splice(nodos_mostrar.indexOf(i),1)
+    console.log("removeu")
+  }
+}
+
+
 
 function salas(){
     
@@ -19,29 +51,35 @@ function salas(){
     }
 return (text_salas)  
 }
+
 var l=0;
 var intervalId = setInterval(function(){
   l=l+1;
 }, 5000);
-function nodos(){
 
+
+
+function nodos(){
+  console.log(nodos_mostrar)
     var x=''
 
-    for (let i = 1; i < 3; i++) {
+    for (let i = 0; i < nr_nodos; i++) {
+
+    
         
-    x+='<ul class="menu" id="menu'+i+'">'
+    x+='<ul class="menu" id="menu'+(i+1)+'">'
     x+='<li>'
-    x+='        <a class="def" onclick="mudar_dados('+i+')"><img style="height:88px; width: 98px " id="dados'+i+'" src="images/grey_server.png"></a><br>'
-    x+=        '<a class="def" onclick="mudar_def('+i+')"><img id="def'+i+'" src="images/def_white.png"></a>'
+    x+='        <a class="def" onclick="mudar_dados('+(i+1)+')"><img style="height:88px; width: 98px " id="dados'+(i+1)+'" src="images/grey_server.png"></a><br>'
+    x+=        '<a class="def" onclick="mudar_def('+(i+1)+')"><img id="def'+(i+1)+'" src="images/def_white.png"></a>'
     x+=    '</li>'
     x+=    '<li>'
-    x+=    '<ul class="lista_dados" id="lista_dados'+i+'" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 300px">'
+    x+=    '<ul class="lista_dados" id="lista_dados'+(i+1)+'" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 300px">'
     x+=        '<li>ID: 1</li>'
     x+=        '<li>Temperatura: '+l+'</li>'
     x+=        '<li>Humidade: </li>'
     x+=        '<li>Fumo: </li>'
     x+=    '</ul> '
-    x+=    '<ul class="mostrar" id="lista_def'+i+'" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 400px">'
+    x+=    '<ul class="mostrar" id="lista_def'+(i+1)+'" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 400px">'
     x+=        '<form action="#" onsubmit="return validateFormOnSubmit(this);" style="margin-left: 5px;">'
     x+=            '<label style="margin-top: 5px;" for="sala">Sala:</label><br>'
     x+=           '<input type="number" id="sala" name="sala" value="1"><br><br>'
@@ -80,8 +118,77 @@ function titulo(){
 }
 
 
+function message_list(){
+
+  var x=''
+  var array_mensagens=string_mensagens.split('next->')
+
+    for (let index = 1; index < array_mensagens.length; index++) {
+
+        x+='<li>'+array_mensagens[index]+'</li>'
+      
+    }
+
+  return(x)
+ 
+}
+
 app.get('/', (req, res) => {
-    console.log(req.query)
+  console.log("queryyyy",req.query)
+
+    var messages=req.query.message_number
+
+    var dados_sel=req.query.mostrar
+
+    var tipo_dados= typeof dados_sel
+    
+    var tipo_msg = typeof messages;
+
+    if (tipo_msg === 'undefined') {
+      string_mensagens+=''
+      //console.log("mensagem recebida não defenida")
+    }
+    else if (tipo_msg === 'string') {
+      string_mensagens+='next->'+messages
+    } else {
+      for (let index = 0; index < messages.length; index++) {
+      
+        string_mensagens+='next->'+messages[index] ; 
+    }
+    }
+
+    console.log("tipo_dados",tipo_dados)
+    console.log("dados_sel",dados_sel)
+
+    if (tipo_dados === 'undefined') {
+      
+      //console.log("mensagem recebida não defenida")
+    }
+    else if (tipo_dados === 'string') {
+      for (let index = 0; index < nr_nodos; index++) {      
+        if(dados_sel==((index+1)+'sim')){
+            mostrar_adicionar((index+1))
+        }
+        else if(dados_sel==((index+1)+'nao')){
+            mostrar_remover((index+1))
+        }
+      }     
+    } 
+    else {
+      for (let index1 = 0; index1 < tipo_dados.length; index1++) {
+      
+        for (let index = 0; index < nr_nodos; index++) {      
+          if(dados_sel[index1]==((index+1)+'sim')){
+              mostrar_adicionar((index+1))
+          }
+          else if(dados_sel[index1]==((index+1)+'nao')){
+              mostrar_remover((index+1))
+          }
+        }   
+    }
+    }
+    //console.log("mensagem registada total",string_mensagens)
+
     var conv=req.query.sala+''  
     sala=parseInt(conv)
     res.send(
@@ -145,6 +252,7 @@ app.get('/', (req, res) => {
           padding: 20px;
           width: 50%;
           background-color: #f1f1f1;
+          height: 100%;
         
         }
         
@@ -158,6 +266,7 @@ app.get('/', (req, res) => {
           width: 50%;
           background: #ccc;
           padding: 20px;
+          height: 100%;
         }
         
         nav ul {
@@ -177,11 +286,15 @@ app.get('/', (req, res) => {
         </style>
 
         <script type="text/javascript">
-        
-            var number_of_rooms=`+nr_salas+`;
-            var get=''
+             
+            var get='';
 
-            var message_number=1
+            var mostrar='';
+
+            
+            
+            console.log(get)
+
         
             function validateFormOnSubmit(theForm) {
         
@@ -205,7 +318,7 @@ app.get('/', (req, res) => {
                     entry.appendChild(document.createTextNode(sala));
                     list.appendChild(entry);
 
-                    get+='&message_number'+message_number+'='+dateTime+'Foi realizada a mudança para a sala '+sala
+                    get+='&message_number='+dateTime+'Foi realizada a mudança para a sala '+sala
                 }
         
                 console.log(time)
@@ -244,10 +357,7 @@ app.get('/', (req, res) => {
           <article>
             <h1>Ações Realizadas:</h1>
                 <ul id="lista" >
-                  <li class="danger">message1</li>
-                  <li>message2 </li>
-                  <li>message3 </li>
-                  <li>message3 </li>
+                  `+message_list()+`
                 </ul> 
           </article>
         </section>
@@ -267,6 +377,8 @@ app.get('/', (req, res) => {
                 document.getElementById('lista_dados'+i).classList.add('lista_dados');
                 document.getElementById('lista_def'+i).classList.remove('lista_def');
                 document.getElementById('lista_def'+i).classList.add('mostrar');
+
+                mostrar+='&mostrar='+i+'sim'
                 
             }
         
@@ -278,6 +390,8 @@ app.get('/', (req, res) => {
                 document.getElementById('lista_dados'+i).classList.add('mostrar');
                 document.getElementById('lista_def'+i).classList.remove('mostrar');
                 document.getElementById('lista_def'+i).classList.add('lista_def');
+
+                mostrar+='&mostrar='+i+'nao'
             }
         
             function mudar_ac(){
@@ -311,7 +425,7 @@ app.get('/', (req, res) => {
                     entry.appendChild(document.createTextNode(sala));
                     list.appendChild(entry);
                     
-                    get+='&message_number'+message_number+'='+dateTime+'Ar condicionado desativado sala: '+sala
+                    get+='&message_number='+dateTime+'Ar condicionado desativado sala: '+sala
         
                 }
                 else{
@@ -333,7 +447,7 @@ app.get('/', (req, res) => {
                     entry.appendChild(document.createTextNode(sala));
                     list.appendChild(entry);
 
-                    get+='&message_number'+message_number+'='+dateTime+'Ar condicionado ativado sala: '+sala
+                    get+='&message_number='+dateTime+'Ar condicionado ativado sala: '+sala
         
                     console.log(entry)
                 }         
@@ -341,7 +455,7 @@ app.get('/', (req, res) => {
             
             function mudar_sala(i){              
                 sala=i
-                location.replace('http://localhost:8080/?sala='+i+get)
+                location.replace('http://localhost:8080/?sala='+i+''+get)
                 console.log(get)
             }
 
@@ -354,7 +468,7 @@ app.get('/', (req, res) => {
   
               i=titulo_sep[1];
 
-              location.replace('http://localhost:8080/?sala='+i+get)
+              location.replace('http://localhost:8080/?sala='+i+''+get+''+mostrar)
 
               }, 5000);
     

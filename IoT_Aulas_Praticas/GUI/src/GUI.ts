@@ -56,6 +56,7 @@ function nodos(){
     x+=   '</ul>'
 
     }
+    console.log("fez refresh")
     return(x)
 }
 
@@ -80,7 +81,8 @@ function titulo(){
 
 
 app.get('/', (req, res) => {
-    var conv=req.query.sala+''
+    console.log(req.query)
+    var conv=req.query.sala+''  
     sala=parseInt(conv)
     res.send(
         `<html>
@@ -173,11 +175,13 @@ app.get('/', (req, res) => {
             color: red;
         }
         </style>
-        
+
         <script type="text/javascript">
         
             var number_of_rooms=`+nr_salas+`;
-        
+            var get=''
+
+            var message_number=1
         
             function validateFormOnSubmit(theForm) {
         
@@ -200,6 +204,8 @@ app.get('/', (req, res) => {
                     entry.appendChild(document.createTextNode('Foi realizada a mudança para a sala '));
                     entry.appendChild(document.createTextNode(sala));
                     list.appendChild(entry);
+
+                    get+='&message_number'+message_number+'='+dateTime+'Foi realizada a mudança para a sala '+sala
                 }
         
                 console.log(time)
@@ -229,7 +235,7 @@ app.get('/', (req, res) => {
           <section style="margin-top: 10px">
         
               <!---------------------------PARTE INTERIOR ESQUERDA----------------------------->
-          <nav>
+          <nav id="nodos">
         
             `+nodos()+`
       
@@ -252,7 +258,7 @@ app.get('/', (req, res) => {
         
         <script type="text/javascript">
             
-            var get=''
+            
             function mudar_dados(i){
                 document.getElementById('dados'+i).src="images/grey_server.png"
                 document.getElementById('def'+i).src="images/def_white.png"
@@ -305,7 +311,7 @@ app.get('/', (req, res) => {
                     entry.appendChild(document.createTextNode(sala));
                     list.appendChild(entry);
                     
-                    get+='&'+dateTime+'Ar condicionado desativado sala: '+sala
+                    get+='&message_number'+message_number+'='+dateTime+'Ar condicionado desativado sala: '+sala
         
                 }
                 else{
@@ -327,7 +333,7 @@ app.get('/', (req, res) => {
                     entry.appendChild(document.createTextNode(sala));
                     list.appendChild(entry);
 
-                    get+='&'+dateTime+'Ar condicionado ativado sala: '+sala
+                    get+='&message_number'+message_number+'='+dateTime+'Ar condicionado ativado sala: '+sala
         
                     console.log(entry)
                 }         
@@ -335,13 +341,22 @@ app.get('/', (req, res) => {
             
             function mudar_sala(i){              
                 sala=i
-                //location.replace('http://localhost:8080/?sala='+i)
+                location.replace('http://localhost:8080/?sala='+i+get)
                 console.log(get)
             }
+
+          
+            var intervalId = setInterval(function(){
+
+              var titulo=document.getElementById('titulo').innerHTML;
     
-            /*var intervalId = setInterval(function(){
-                location.reload();
-              }, 5000);*/
+              var titulo_sep = titulo.split(" ");
+  
+              i=titulo_sep[1];
+
+              location.replace('http://localhost:8080/?sala='+i+get)
+
+              }, 5000);
     
         </script>
         

@@ -480,10 +480,10 @@ app.get('/', (req, res) => {
               var titulo_sep = titulo.split(" ");
   
               i=titulo_sep[1];
-
               location.replace('http://localhost:8080/?sala='+i+''+get+''+mostrar)
+              
 
-              }, 5000);
+              }, 10000);
     
         </script>
         

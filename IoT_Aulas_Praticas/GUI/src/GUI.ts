@@ -5,7 +5,7 @@ const app=express();
 const port = 8080;
 app.use(express.static(__dirname + '/public'));
 
-var nr_nodos=3;
+var nr_nodos=4;
 var sala=1;
 var string_mensagens=''
 
@@ -21,12 +21,12 @@ for (let index = 1; index <= nr_nodos; index++) {
 
 
 function mostrar_adicionar(i){
-  console.log("empurrou111")
+
   if (nodos_mostrar.includes(i)) {
-    console.log("empurrou111")
+
   }else{
     nodos_mostrar.push(i)
-    console.log("empurrou")
+
   }
 
 }
@@ -95,11 +95,11 @@ function nodos(){
       x+=    '<ul class="'+print2+'" id="lista_def'+(i+1)+'" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 400px">'
       x+=        '<form action="#" onsubmit="return validateFormOnSubmit(this);" style="margin-left: 5px;">'
       x+=            '<label style="margin-top: 5px;" for="sala">Sala:</label><br>'
-      x+=           '<input type="number" id="sala" name="sala" value="1"><br><br>'
-      x+=            '<label for="freq_tem">Frequêcia Temp/Hum:</label><br>'
-      x+=           '<input type="number" id="freq_tem" name="freq_tem" value="50">Hz<br><br>'
-      x+=           '<label for="freq_fum">Frequêcia Fumo:</label><br>'
-      x+=           '<input type="number" id="freq_fum" name="freq_fum" value="50">Hz<br><br>'
+      x+=           '<input onclick="hold()"  type="number" min="1" max="'+nr_nodos+'" id="sala" name="sala" value="1"><br><br>'
+      x+=            '<label for="freq_tem">Tempo de aquisição Temp/Hum:</label><br>'
+      x+=           '<input onclick="hold()"  type="number"  min="1" step="any" id="freq_tem" name="freq_tem" value="50">s<br><br>'
+      x+=           '<label for="freq_fum">Tempo de aquisição Fumo:</label><br>'
+      x+=           '<input onclick="hold()"  type="number"  min="1" step="any" id="freq_fum" name="freq_fum" value="50">s<br><br>'
       x+=           '<input style=" padding: 5px; float:right;" type="submit" value="Enviar">'
       x+=       '</form>'
       x+=   '</ul>'  
@@ -265,7 +265,7 @@ app.get('/', (req, res) => {
           padding: 20px;
           width: 50%;
           background-color: #f1f1f1;
-          height: 100%;
+         
         
         }
         
@@ -279,7 +279,7 @@ app.get('/', (req, res) => {
           width: 50%;
           background: #ccc;
           padding: 20px;
-          height: 100%;
+          
         }
         
         nav ul {
@@ -302,13 +302,11 @@ app.get('/', (req, res) => {
              
             var get='';
 
-            var mostrar='';
-
-            
+            var mostrar='';          
             
             console.log(get)
 
-        
+            //função que trata dos dados após clicarmos no botão de enviar
             function validateFormOnSubmit(theForm) {
         
                 var sala = theForm.sala.value;
@@ -337,6 +335,11 @@ app.get('/', (req, res) => {
                 console.log(time)
                 return false;
             }
+
+            window.addEventListener('scroll',function() {
+              //When scroll change, you save it on localStorage.
+              localStorage.setItem('scrollPosition',window.scrollY);
+          },false);
         
         </script>
         
@@ -381,7 +384,7 @@ app.get('/', (req, res) => {
         
         <script type="text/javascript">
             
-            
+        //mostrar ou não a interface de mostragem dos dados
             function mudar_dados(i){
                 document.getElementById('dados'+i).src="images/grey_server.png"
                 document.getElementById('def'+i).src="images/def_white.png"
@@ -394,7 +397,8 @@ app.get('/', (req, res) => {
                 mostrar+='&mostrar='+i+'sim'
                 
             }
-        
+
+            //mostrar ou não a interface de mudança de defenições
             function mudar_def(i){
                 document.getElementById('dados'+i).src="images/white_server.png"
                 document.getElementById('def'+i).src="images/def_grey.png"
@@ -406,7 +410,8 @@ app.get('/', (req, res) => {
 
                 mostrar+='&mostrar='+i+'nao'
             }
-        
+            
+            //função que atua quando procuramos mudar o valor do ar condicionado colocando nas menssagens laterais
             function mudar_ac(){
     
                 var titulo=document.getElementById('titulo').innerHTML;
@@ -466,24 +471,48 @@ app.get('/', (req, res) => {
                 }         
             }
             
+            //função que atua quando clicamos para mudar de sala
             function mudar_sala(i){              
                 sala=i
+       
+                localStorage.removeItem('scrollPosition');
+                
+                
                 location.replace('http://localhost:8080/?sala='+i+''+get)
+                
                 console.log(get)
             }
 
-          
-            var intervalId = setInterval(function(){
+            //funcao que aumenta o intervalo de reload temporariamente quando o utilizador interage com o formulário
+            function hold(){
+
+              clearInterval(intervalId);
+              intervalId = setInterval(reload, 15000);
+              console.log("reload to timer")
+
+            }
+            
+            //funcao que atua no reload da página 
+            function reload(){
 
               var titulo=document.getElementById('titulo').innerHTML;
     
               var titulo_sep = titulo.split(" ");
   
               i=titulo_sep[1];
-              location.replace('http://localhost:8080/?sala='+i+''+get+''+mostrar)
-              
 
-              }, 10000);
+              location.replace('http://localhost:8080/?sala='+i+''+get+''+mostrar)
+
+              }
+          
+            //intervalo para dar auto reload à janela
+            var intervalId = setInterval(reload, 5000);
+
+            //função para manter o mesmo nível de scroll na página
+              window.addEventListener('load',function() {
+                if(localStorage.getItem('scrollPosition') !== null)
+                   window.scrollTo(0, localStorage.getItem('scrollPosition'));
+            },false);
     
         </script>
         

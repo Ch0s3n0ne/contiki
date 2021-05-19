@@ -22,12 +22,8 @@ Running the code:
 ts-node ddbdoc_update_item.js
 */
 // snippet-start:[dynamodb.JavaScript.docClient.updateV3]
-
-const { DynamoDBClient, QueryCommand } = require("@aws-sdk/client-dynamodb");
-
-// Set the AWS Region
-const REGION = "eu-west-1"; //e.g. "us-east-1"
-
+const  UpdateCommand  =require ("@aws-sdk/lib-dynamodb");
+const  ddbDocClient  =require("./libs/ddbDocClient.js");
 
 // Set the parameters
 const params = {
@@ -55,11 +51,9 @@ const params = {
   },
 };
 
-const dbclient = new DynamoDBClient({ region: REGION });
-
 const run = async () => {
   try {
-    const data = await dbclient.send(new QueryCommand(params));
+    const data = await ddbDocClient.send(new UpdateCommand(params));
     console.log("Success - item added or updated", data);
     return data;
   } catch (err) {

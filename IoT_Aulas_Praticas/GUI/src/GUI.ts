@@ -13,6 +13,10 @@ var nodos_mostrar=[];
 
 
 
+
+
+// -----------------------------------funções de contrução da interface-----------------------------------------------------------
+
 for (let index = 1; index <= nr_nodos; index++) {
       
   nodos_mostrar.push(index)
@@ -26,9 +30,7 @@ function mostrar_adicionar(i){
 
   }else{
     nodos_mostrar.push(i)
-
   }
-
 }
 
 function mostrar_remover(i){
@@ -37,8 +39,6 @@ function mostrar_remover(i){
     console.log("removeu")
   }
 }
-
-
 
 function salas(){
     
@@ -302,7 +302,9 @@ app.get('/', (req, res) => {
              
             var get='';
 
-            var mostrar='';          
+            var mostrar='';
+            
+            var nr_nodos=`+nr_nodos+`
             
             console.log(get)
 
@@ -476,9 +478,17 @@ app.get('/', (req, res) => {
                 sala=i
        
                 localStorage.removeItem('scrollPosition');
+
                 
+                for (let index = 1; index <= nr_nodos; index++) {
+     
+                  mostrar+='&mostrar='+index+'sim'
+                } 
+                                
                 
-                location.replace('http://localhost:8080/?sala='+i+''+get)
+                location.replace('http://localhost:8080/?sala='+i+''+get+''+mostrar)
+
+
                 
                 console.log(get)
             }
@@ -502,6 +512,8 @@ app.get('/', (req, res) => {
               i=titulo_sep[1];
 
               location.replace('http://localhost:8080/?sala='+i+''+get+''+mostrar)
+
+              
 
               }
           

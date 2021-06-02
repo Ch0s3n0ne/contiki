@@ -10,18 +10,21 @@ var tools = require('./function.js');
 const app=express();
 const port = 8080;
 app.use(express.static(__dirname + '/public'));
-
-var nr_nodos=4;
-
+var nr_nodos=1;
 var sala=1;
 var string_mensagens=''
 var nodos_mostrar=[];
 
 const dbclient = new DynamoDBClient({ region: REGION });
+
+
+//-----------------------fim da inicialização de variáveis--------------------------------
+
+
   var l=0;
   var intervalId = setInterval(function(){
     l=l+1;
-    console.log("x")
+    //console.log("x")
   }, 5000);
   
   async function contagem_de_salas() {
@@ -55,47 +58,6 @@ const dbclient = new DynamoDBClient({ region: REGION });
     var i=1;
     var id_array=[];
     var room_array=[];
-
-
-      // Create DynamoDB service object
-      
-
-      async function contagem_de_nodos() {
-
-
-        while(i<=nr_salas){
-
-          // Set the parameters
-            const params = {
-              KeyConditionExpression: "ROOM_ID = :s ",
-            
-              ExpressionAttributeValues: {
-                ":s": { N: ""+i+"" },
-          
-              },
-              ProjectionExpression: "ROOM_ID, DEV_ID",
-              TableName: "CONFIGURATION",
-            };
-
-            try {
-              const results = await dbclient.send(new QueryCommand(params));
-              results.Items.forEach(function (element, index, array) {
-                console.log(element.DEV_ID.N );
-                id_array.push(element.DEV_ID.N);
-                room_array.push(element.ROOM_ID.N);
-                
-
-              });
-
-            } catch (err) {
-              console.error(err);
-            }
-            console.log(i)
-
-            if(i==nr_salas){
-              console.log(id_array)
-              console.log(room_array)
-            
 
 
 
@@ -285,6 +247,43 @@ app.get('/', (req, res) => {
     }
     var conv=req.query.sala+''  
         sala=parseInt(conv)
+
+        async function contagem_de_nodos() {
+
+
+          console.log("correu função no reload")
+          id_array=[];
+
+          // Set the parameters
+            const params = {
+              KeyConditionExpression: "ROOM_ID = :s ",
+            
+              ExpressionAttributeValues: {
+                ":s": { N: ""+sala+"" },
+          
+              },
+              ProjectionExpression: "ROOM_ID, DEV_ID",
+              TableName: "CONFIGURATION",
+            };
+
+            try {
+              const results = await dbclient.send(new QueryCommand(params));
+              results.Items.forEach(function (element, index, array) {
+                console.log(element.DEV_ID.N );
+                id_array.push(element.DEV_ID.N);            
+              });
+
+            } catch (err) {
+              console.error(err);
+            }
+            console.log("ids na sala")
+            console.log(id_array)
+
+            nr_nodos=id_array.length
+
+            console.log(nr_nodos)
+
+            
 
     //--------------------------------print da página HTML------------------------------------------
     
@@ -602,7 +601,7 @@ app.get('/', (req, res) => {
               }
           
             //intervalo para dar auto reload à janela
-            var intervalId = setInterval(reload, 5000);
+            //var intervalId = setInterval(reload, 5000);
 
             //função para manter o mesmo nível de scroll na página
               window.addEventListener('load',function() {
@@ -615,19 +614,11 @@ app.get('/', (req, res) => {
         </body>
         </html> 
       `)
+    }
+    contagem_de_nodos();
   })
 
-}
-        
 
-
-i=i+1;
-
-
-};
-
-}
-contagem_de_nodos();
 
 }
 contagem_de_salas();

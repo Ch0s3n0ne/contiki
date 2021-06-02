@@ -43,21 +43,21 @@ var REGION = "eu-west-1"; //e.g. "us-east-1"
 var params = {
     AttributeDefinitions: [
         {
-            AttributeName: "Season",
+            AttributeName: "ROOM_ID",
             AttributeType: "N"
         },
         {
-            AttributeName: "Episode",
+            AttributeName: "DEV_ID",
             AttributeType: "N"
         },
     ],
     KeySchema: [
         {
-            AttributeName: "Season",
+            AttributeName: "ROOM_ID",
             KeyType: "HASH"
         },
         {
-            AttributeName: "Episode",
+            AttributeName: "DEV_ID",
             KeyType: "RANGE"
         },
     ],
@@ -65,14 +65,14 @@ var params = {
         ReadCapacityUnits: 1,
         WriteCapacityUnits: 1
     },
-    TableName: "TABLE_NAME",
+    TableName: "CONFIGURATION",
     StreamSpecification: {
         StreamEnabled: false
     }
 };
 // Create DynamoDB service object
 var dbclient = new DynamoDBClient({ region: REGION });
-run = function () { return __awaiter(_this, void 0, void 0, function () {
+var run = function () { return __awaiter(_this, void 0, void 0, function () {
     var data, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {

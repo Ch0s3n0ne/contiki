@@ -1,21 +1,107 @@
 import express = require('express');
 import { textSpanEnd } from 'typescript';
 
+const { DynamoDBClient, ScanCommand, QueryCommand } = require("@aws-sdk/client-dynamodb");
+
+// Set the AWS Region
+const REGION = "eu-west-1"; //e.g. "us-east-1"
+var tools = require('./function.js');
+
 const app=express();
 const port = 8080;
 app.use(express.static(__dirname + '/public'));
 
 var nr_nodos=4;
+
 var sala=1;
 var string_mensagens=''
-
 var nodos_mostrar=[];
 
+const dbclient = new DynamoDBClient({ region: REGION });
+  var l=0;
+  var intervalId = setInterval(function(){
+    l=l+1;
+    console.log("x")
+  }, 5000);
+  
+  async function contagem_de_salas() {
+    
+    var nr_salas=0;
+    const params = {
+      // Specify which items in the results are returned.
+      FilterExpression: "ROOM_ID > :s ",
+      // Define the expression attribute value, which are substitutes for the values you want to compare.
+      ExpressionAttributeValues: {
+        
+        ":s": { N: "0" },
+        
+      },
+      // Set the projection expression, which the the attributes that you want.
+      ProjectionExpression: "ROOM_ID, AC",
+      TableName: "ar_condicionado_sala",
+    };
+    try {
+      const data = await dbclient.send(new ScanCommand(params));
+      data.Items.forEach(function (element, index, array) {
+        //console.log(element.ROOM_ID.N + " (" + element.AC.N + ")");
+        nr_salas=nr_salas+1;
+        return data;
+      });
+    } catch (err) {
+      console.log("Error", err);
+    }
+    console.log(nr_salas)
 
+    var i=1;
+    var id_array=[];
+    var room_array=[];
+
+
+      // Create DynamoDB service object
+      
+
+      async function contagem_de_nodos() {
+
+
+        while(i<=nr_salas){
+
+          // Set the parameters
+            const params = {
+              KeyConditionExpression: "ROOM_ID = :s ",
+            
+              ExpressionAttributeValues: {
+                ":s": { N: ""+i+"" },
+          
+              },
+              ProjectionExpression: "ROOM_ID, DEV_ID",
+              TableName: "CONFIGURATION",
+            };
+
+            try {
+              const results = await dbclient.send(new QueryCommand(params));
+              results.Items.forEach(function (element, index, array) {
+                console.log(element.DEV_ID.N );
+                id_array.push(element.DEV_ID.N);
+                room_array.push(element.ROOM_ID.N);
+                
+
+              });
+
+            } catch (err) {
+              console.error(err);
+            }
+            console.log(i)
+
+            if(i==nr_salas){
+              console.log(id_array)
+              console.log(room_array)
+            
 
 
 
 // -----------------------------------funções de contrução da interface-----------------------------------------------------------
+
+
 
 for (let index = 1; index <= nr_nodos; index++) {
       
@@ -44,18 +130,13 @@ function salas(){
     
     var text_salas=''
 
-    for (let i = 1; i < 4; i++) {
+    for (let i = 1; i <= nr_salas; i++) {
         
         text_salas=text_salas+'<a onclick="mudar_sala('+i+')">Sala '+(i)+'</a> '
         
     }
 return (text_salas)  
 }
-
-var l=0;
-var intervalId = setInterval(function(){
-  l=l+1;
-}, 5000);
 
 
 
@@ -147,6 +228,8 @@ function message_list(){
 }
 
 app.get('/', (req, res) => {
+
+  //-------------------------------------processamento de comandos GET------------------------------------------------
   console.log("queryyyy",req.query)
 
     var messages=req.query.message_number
@@ -200,10 +283,11 @@ app.get('/', (req, res) => {
         }   
     }
     }
-    //console.log("mensagem registada total",string_mensagens)
-
     var conv=req.query.sala+''  
-    sala=parseInt(conv)
+        sala=parseInt(conv)
+
+    //--------------------------------print da página HTML------------------------------------------
+    
     res.send(
         `<html>
         <head>
@@ -533,8 +617,22 @@ app.get('/', (req, res) => {
       `)
   })
 
-  app.listen(port,() => {
-    console.log(`server started a http://localhost:${port}.`);
-  })
+}
+        
 
-  
+
+i=i+1;
+
+
+};
+
+}
+contagem_de_nodos();
+
+}
+contagem_de_salas();
+
+
+app.listen(port,() => {
+  console.log(`server started a http://localhost:${port}.`);
+})

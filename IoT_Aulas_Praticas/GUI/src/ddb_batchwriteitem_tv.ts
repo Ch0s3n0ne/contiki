@@ -28,44 +28,70 @@ const ddbClient = new DynamoDBClient({ region: REGION });
 
 const params = {
   RequestItems: {
-    EPISODES_TABLE: [
+    CONFIGURATION: [
       {
         PutRequest: {
           Item: {
-            Season: { N: "1" },
-            Episode: { N: "1" },
-            Subtitle: { S: "SubTitle1" },
-            Title: { S: "Title1" },
+            ROOM_ID: { N: "1" },
+            DEV_ID: { N: "1001" },
+            ReadWrite: { N: "0" },
+            Smoke_Rate: { N: "1" },
+            TempHum_Rate: { N: "300" },
           },
         },
       },
       {
         PutRequest: {
           Item: {
-            Season: { N: "1" },
-            Episode: { N: "2" },
-            Subtitle: { S: "SubTitle2" },
-            Title: { S: "Title2" },
+            ROOM_ID: { N: "1" },
+            DEV_ID: { N: "1002" },
+            ReadWrite: { N: "0" },
+            Smoke_Rate: { N: "1" },
+            TempHum_Rate: { N: "300" },
           },
         },
       },
       {
         PutRequest: {
           Item: {
-            Season: { N: "1" },
-            Episode: { N: "3" },
-            Subtitle: { S: "SubTitle3" },
-            Title: { S: "Title3" },
+            ROOM_ID: { N: "1" },
+            DEV_ID: { N: "1003" },
+            ReadWrite: { N: "0" },
+            Smoke_Rate: { N: "1" },
+            TempHum_Rate: { N: "300" },
           },
         },
       },
       {
         PutRequest: {
           Item: {
-            Season: { N: "1" },
-            Episode: { N: "4" },
-            Subtitle: { S: "SubTitle4" },
-            Title: { S: "Title4" },
+            ROOM_ID: { N: "2" },
+            DEV_ID: { N: "1004" },
+            ReadWrite: { N: "0" },
+            Smoke_Rate: { N: "1" },
+            TempHum_Rate: { N: "300" },
+          },
+        },
+      },
+      {
+        PutRequest: {
+          Item: {
+            ROOM_ID: { N: "2" },
+            DEV_ID: { N: "1005" },
+            ReadWrite: { N: "0" },
+            Smoke_Rate: { N: "1" },
+            TempHum_Rate: { N: "300" },
+          },
+        },
+      },
+      {
+        PutRequest: {
+          Item: {
+            ROOM_ID: { N: "2" },
+            DEV_ID: { N: "1006" },
+            ReadWrite: { N: "0" },
+            Smoke_Rate: { N: "1" },
+            TempHum_Rate: { N: "300" },
           },
         },
       },

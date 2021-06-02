@@ -44,49 +44,58 @@ app.use(express.static(__dirname + '/public'));
 var _a = require("@aws-sdk/client-dynamodb"), DynamoDBClient = _a.DynamoDBClient, QueryCommand = _a.QueryCommand;
 // Set the AWS Region
 var REGION = "eu-west-1"; //e.g. "us-east-1"
-// Set the parameters
-var params = {
-    KeyConditionExpression: "Season = :s and Episode > :e",
-    FilterExpression: "contains (Subtitle, :topic)",
-    ExpressionAttributeValues: {
-        ":s": { N: "1" },
-        ":e": { N: "2" },
-        ":topic": { S: "SubTitle" }
-    },
-    ProjectionExpression: "Episode, Title, Subtitle",
-    TableName: "EPISODES_TABLE"
-};
+var i = 1;
+var id_array = [];
+var room_array = [];
 // Create DynamoDB service object
 var dbclient = new DynamoDBClient({ region: REGION });
-var Title_Array = [];
-var run = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var results, err_1;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, dbclient.send(new QueryCommand(params))];
-            case 1:
-                results = _a.sent();
-                results.Items.forEach(function (element, index, array) {
-                    console.log(element.Title.S + " (" + element.Subtitle.S + ")");
-                    Title_Array.push(element.Title.S);
-                });
-                return [3 /*break*/, 3];
-            case 2:
-                err_1 = _a.sent();
-                console.error(err_1);
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
-        }
+function run() {
+    return __awaiter(this, void 0, void 0, function () {
+        var params, results, err_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    if (!(i <= 2)) return [3 /*break*/, 5];
+                    params = {
+                        KeyConditionExpression: "ROOM_ID = :s ",
+                        ExpressionAttributeValues: {
+                            ":s": { N: "" + i + "" }
+                        },
+                        ProjectionExpression: "ROOM_ID, DEV_ID",
+                        TableName: "CONFIGURATION"
+                    };
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, dbclient.send(new QueryCommand(params))];
+                case 2:
+                    results = _a.sent();
+                    results.Items.forEach(function (element, index, array) {
+                        console.log(element.DEV_ID.N);
+                        id_array.push(element.DEV_ID.N);
+                        room_array.push(element.ROOM_ID.N);
+                    });
+                    return [3 /*break*/, 4];
+                case 3:
+                    err_1 = _a.sent();
+                    console.error(err_1);
+                    return [3 /*break*/, 4];
+                case 4:
+                    console.log(i);
+                    if (i == 2) {
+                        console.log(id_array);
+                        console.log(room_array);
+                    }
+                    i = i + 1;
+                    return [3 /*break*/, 0];
+                case 5:
+                    ;
+                    return [2 /*return*/];
+            }
+        });
     });
-}); };
-var intervalId = setInterval(function () {
-    run();
-}, 5000);
-app.get("/", function (req, res) {
-    res.send("<html>\n  <header>\n      <title>DEEC IoT CoAP Test Server v1.0</title>\n  </header>\n  <body>\n      <img src=\"/images/images\">\n      <p style=\"border:1px solid black; \"id=\"teste\">" + Title_Array.toString() + "</p>\n     </div>\n  </body>\n</html>\n\n<script>\n  var intervalId = setInterval(function(){\n    location.reload();\n  }, 5000);\n</script>\n");
-});
-app.listen(port, function () {
-    console.log("server started a http://localhost:" + port + ".");
-});
+}
+run();
+/*var intervalId = setInterval(function(){
+  run();
+}, 5000);*/

@@ -544,6 +544,8 @@ app.get('/', (req, res) => {
                     list.appendChild(entry);
                     
                     get+='&message_number='+dateTime+'Ar condicionado desativado sala: '+sala
+
+                    location.replace('http://localhost:8080/?sala='+sala+''+get+''+mostrar)
         
                 }
                 else{
@@ -566,6 +568,8 @@ app.get('/', (req, res) => {
                     list.appendChild(entry);
 
                     get+='&message_number='+dateTime+'Ar condicionado ativado sala: '+sala
+
+                    location.replace('http://localhost:8080/?sala='+sala+''+get+''+mostrar)
         
                     console.log(entry)
                 }         

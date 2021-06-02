@@ -46,8 +46,12 @@ var port = 8080;
 app.use(express.static(__dirname + '/public'));
 var nr_nodos = 1;
 var sala = 1;
+var sala_anterior = 0;
 var string_mensagens = '';
 var nodos_mostrar = [];
+var id_array = [];
+var smoke_array = [];
+var temp_array = [];
 var dbclient = new DynamoDBClient({ region: REGION });
 //-----------------------fim da inicialização de variáveis--------------------------------
 var l = 0;
@@ -57,6 +61,8 @@ var intervalId = setInterval(function () {
 }, 5000);
 function contagem_de_salas() {
     return __awaiter(this, void 0, void 0, function () {
+        //    console.log(nr_salas)
+        // -----------------------------------funções de contrução da interface-----------------------------------------------------------
         function mostrar_adicionar(i) {
             if (nodos_mostrar.includes(i)) {
             }
@@ -72,8 +78,8 @@ function contagem_de_salas() {
         }
         function salas() {
             var text_salas = '';
-            for (var i_1 = 1; i_1 <= nr_salas; i_1++) {
-                text_salas = text_salas + '<a onclick="mudar_sala(' + i_1 + ')">Sala ' + (i_1) + '</a> ';
+            for (var i = 1; i <= nr_salas; i++) {
+                text_salas = text_salas + '<a onclick="mudar_sala(' + i + ')">Sala ' + (i) + '</a> ';
             }
             return (text_salas);
         }
@@ -83,8 +89,10 @@ function contagem_de_salas() {
             var print1 = '';
             var print11 = '';
             var print21 = '';
-            for (var i_2 = 0; i_2 < nr_nodos; i_2++) {
-                if (nodos_mostrar.includes(i_2 + 1)) {
+            console.log("nodos a mostrar");
+            console.log(nodos_mostrar);
+            for (var i = 0; i < nr_nodos; i++) {
+                if (nodos_mostrar.includes(i + 1)) {
                     print2 = 'mostrar';
                     print1 = 'lista_dados';
                     print11 = 'grey_server.png';
@@ -96,26 +104,26 @@ function contagem_de_salas() {
                     print11 = 'white_server.png';
                     print21 = 'def_grey.png';
                 }
-                x += '<ul class="menu" id="menu' + (i_2 + 1) + '">';
+                x += '<ul class="menu" id="menu' + (i + 1) + '">';
                 x += '<li>';
-                x += '        <a class="def" onclick="mudar_dados(' + (i_2 + 1) + ')"><img style="height:88px; width: 98px " id="dados' + (i_2 + 1) + '" src="images/' + print11 + '"></a><br>';
-                x += '<a class="def" onclick="mudar_def(' + (i_2 + 1) + ')"><img id="def' + (i_2 + 1) + '" src="images/' + print21 + '"></a>';
+                x += '        <a class="def" onclick="mudar_dados(' + (i + 1) + ')"><img style="height:88px; width: 98px " id="dados' + (i + 1) + '" src="images/' + print11 + '"></a><br>';
+                x += '<a class="def" onclick="mudar_def(' + (i + 1) + ')"><img id="def' + (i + 1) + '" src="images/' + print21 + '"></a>';
                 x += '</li>';
                 x += '<li>';
-                x += '<ul class="' + print1 + '" id="lista_dados' + (i_2 + 1) + '" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 300px">';
-                x += '<li>ID: 1</li>';
+                x += '<ul class="' + print1 + '" id="lista_dados' + (i + 1) + '" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 300px">';
+                x += '<li>ID: ' + id_array[i] + '</li>';
                 x += '<li>Temperatura: ' + l + '</li>';
                 x += '<li>Humidade: </li>';
                 x += '<li>Fumo: </li>';
                 x += '</ul> ';
-                x += '<ul class="' + print2 + '" id="lista_def' + (i_2 + 1) + '" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 400px">';
+                x += '<ul class="' + print2 + '" id="lista_def' + (i + 1) + '" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 400px">';
                 x += '<form action="#" onsubmit="return validateFormOnSubmit(this);" style="margin-left: 5px;">';
                 x += '<label style="margin-top: 5px;" for="sala">Sala:</label><br>';
-                x += '<input onclick="hold()"  type="number" min="1" max="' + nr_nodos + '" id="sala" name="sala" value="1"><br><br>';
+                x += '<input onclick="hold()"  type="number" min="1" max="' + nr_nodos + '" id="sala" name="sala" value="' + sala + '"><br><br>';
                 x += '<label for="freq_tem">Tempo de aquisição Temp/Hum:</label><br>';
-                x += '<input onclick="hold()"  type="number"  min="1" step="any" id="freq_tem" name="freq_tem" value="50">s<br><br>';
+                x += '<input onclick="hold()"  type="number"  min="1" step="any" id="freq_tem" name="freq_tem" value="' + temp_array[i] + '">s<br><br>';
                 x += '<label for="freq_fum">Tempo de aquisição Fumo:</label><br>';
-                x += '<input onclick="hold()"  type="number"  min="1" step="any" id="freq_fum" name="freq_fum" value="50">s<br><br>';
+                x += '<input onclick="hold()"  type="number"  min="1" step="any" id="freq_fum" name="freq_fum" value="' + smoke_array[i] + '">s<br><br>';
                 x += '<input style=" padding: 5px; float:right;" type="submit" value="Enviar">';
                 x += '</form>';
                 x += '</ul>';
@@ -146,7 +154,7 @@ function contagem_de_salas() {
             }
             return (x);
         }
-        var nr_salas, params, data_1, err_1, i, id_array, room_array, index;
+        var nr_salas, params, data_1, err_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -179,14 +187,6 @@ function contagem_de_salas() {
                     console.log("Error", err_1);
                     return [3 /*break*/, 4];
                 case 4:
-                    console.log(nr_salas);
-                    i = 1;
-                    id_array = [];
-                    room_array = [];
-                    // -----------------------------------funções de contrução da interface-----------------------------------------------------------
-                    for (index = 1; index <= nr_nodos; index++) {
-                        nodos_mostrar.push(index);
-                    }
                     app.get('/', function (req, res) {
                         //-------------------------------------processamento de comandos GET------------------------------------------------
                         console.log("queryyyy", req.query);
@@ -235,31 +235,39 @@ function contagem_de_salas() {
                         }
                         var conv = req.query.sala + '';
                         sala = parseInt(conv);
+                        if (!sala) {
+                            sala = 1;
+                        }
                         function contagem_de_nodos() {
                             return __awaiter(this, void 0, void 0, function () {
-                                var params, results, err_2;
+                                var params_1, results, err_2, index;
                                 return __generator(this, function (_a) {
                                     switch (_a.label) {
                                         case 0:
                                             console.log("correu função no reload");
+                                            if (!(sala != sala_anterior)) return [3 /*break*/, 5];
                                             id_array = [];
-                                            params = {
+                                            smoke_array = [];
+                                            temp_array = [];
+                                            params_1 = {
                                                 KeyConditionExpression: "ROOM_ID = :s ",
                                                 ExpressionAttributeValues: {
                                                     ":s": { N: "" + sala + "" }
                                                 },
-                                                ProjectionExpression: "ROOM_ID, DEV_ID",
+                                                ProjectionExpression: "ROOM_ID, DEV_ID, Smoke_Rate, TempHum_Rate",
                                                 TableName: "CONFIGURATION"
                                             };
                                             _a.label = 1;
                                         case 1:
                                             _a.trys.push([1, 3, , 4]);
-                                            return [4 /*yield*/, dbclient.send(new QueryCommand(params))];
+                                            return [4 /*yield*/, dbclient.send(new QueryCommand(params_1))];
                                         case 2:
                                             results = _a.sent();
                                             results.Items.forEach(function (element, index, array) {
                                                 console.log(element.DEV_ID.N);
                                                 id_array.push(element.DEV_ID.N);
+                                                smoke_array.push(element.Smoke_Rate.N);
+                                                temp_array.push(element.TempHum_Rate.N);
                                             });
                                             return [3 /*break*/, 4];
                                         case 3:
@@ -269,10 +277,18 @@ function contagem_de_salas() {
                                         case 4:
                                             console.log("ids na sala");
                                             console.log(id_array);
+                                            console.log(smoke_array);
+                                            console.log(temp_array);
                                             nr_nodos = id_array.length;
-                                            console.log(nr_nodos);
+                                            nodos_mostrar = [];
+                                            for (index = 1; index <= nr_nodos; index++) {
+                                                nodos_mostrar.push(index);
+                                            }
+                                            sala_anterior = sala;
+                                            _a.label = 5;
+                                        case 5:
                                             //--------------------------------print da página HTML------------------------------------------
-                                            res.send("<html>\n        <head>\n        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n        <meta charset=\"UTF-8\">\n        <style>\n        \n        .sidenav {\n          height: 100%;\n          width: 160px;\n          position: fixed;\n          z-index: 1;\n          top: 0;\n          left: 0;\n          background-color: #111;\n          overflow-x: hidden;\n          padding-top: 20px;\n        }\n        \n        .sidenav a {\n          padding: 6px 8px 6px 16px;\n          text-decoration: none;\n          font-size: 25px;\n          color: #818181;\n          display: block;\n        }\n        \n        .sidenav a:hover {\n          color: #f1f1f1;\n        }\n        \n        .main {\n          margin-left: 160px; /* Same as the width of the sidenav */\n          font-size: 28px; /* Increased text to enable scrolling */\n          padding: 0px 10px;\n        }\n        \n        @media screen and (max-height: 450px) {\n          .sidenav {padding-top: 15px;}\n          .sidenav a {font-size: 18px;}\n        }\n        ul.menu li {\n          display:inline;\n        }\n        ul#lista li {\n          display: list-item;\n        }\n        \n        ul.lista_dados li {\n          display: list-item;\n        }\n        \n        ul.lista_def li {\n          display: list-item;\n        }\n        \n        article {\n          float: left;\n          padding: 20px;\n          width: 50%;\n          background-color: #f1f1f1;\n         \n        \n        }\n        \n        * {\n          box-sizing: border-box;\n        }\n        \n        /* Create two columns/boxes that floats next to each other */\n        nav {\n          float: left;\n          width: 50%;\n          background: #ccc;\n          padding: 20px;\n          \n        }\n        \n        nav ul {\n          list-style-type: none;\n          padding: 0;\n        }\n        \n        .def:hover {\n            opacity: 0.5;\n        }\n        .mostrar{\n            display: none;\n        }\n        .danger{\n            color: red;\n        }\n        </style>\n\n        <script type=\"text/javascript\">\n             \n            var get='';\n\n            var mostrar='';\n            \n            var nr_nodos=" + nr_nodos + "\n            \n            console.log(get)\n\n            //fun\u00E7\u00E3o que trata dos dados ap\u00F3s clicarmos no bot\u00E3o de enviar\n            function validateFormOnSubmit(theForm) {\n        \n                var sala = theForm.sala.value;\n                var  freq_tem= theForm.freq_tem.value;\n                var freq_fum = theForm.freq_fum.value;\n                if (sala==3) {\n        \n                    var today = new Date();\n        \n                    var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();\n        \n                    var time = today.getHours() + \":\" + today.getMinutes() + \":\" + today.getSeconds();\n        \n                    var dateTime = date+' '+time+'\u21E8';\n        \n                    var list = document.getElementById('lista');\n                    var entry = document.createElement('li');\n                    entry.appendChild(document.createTextNode(dateTime));\n                    entry.appendChild(document.createTextNode('Foi realizada a mudan\u00E7a para a sala '));\n                    entry.appendChild(document.createTextNode(sala));\n                    list.appendChild(entry);\n\n                    get+='&message_number='+dateTime+'Foi realizada a mudan\u00E7a para a sala '+sala\n                }\n        \n                console.log(time)\n                return false;\n            }\n\n            window.addEventListener('scroll',function() {\n              //When scroll change, you save it on localStorage.\n              localStorage.setItem('scrollPosition',window.scrollY);\n          },false);\n        \n        </script>\n        \n        </head>\n        <body>\n        \n        <!---------------------------MENU LATERAL----------------------------->\n        \n        <div id=\"menu_lateral\" class=\"sidenav\">\n        " + salas() + "\n        </div>\n        \n        <div class=\"main\">\n        \n            <!---------------------------PARTE SUPERIOR----------------------------->\n            <header>\n                  " + titulo() + "\n                  <span>Indice de Manuten\u00E7\u00E3o: 75%\n                  <button onclick=\"mudar_ac()\" id=\"ar_condicionado\" style=\"margin-left: 21%; padding: 10px;\">Ativar Ar Condicionado</button></span>\n            </header>\n        \n          <section style=\"margin-top: 10px\">\n        \n              <!---------------------------PARTE INTERIOR ESQUERDA----------------------------->\n          <nav id=\"nodos\">\n        \n            " + nodos() + "\n      \n          </nav>\n          <!---------------------------PARTE INTERIOR DIREITA----------------------------->\n          <article>\n            <h1>A\u00E7\u00F5es Realizadas:</h1>\n                <ul id=\"lista\" >\n                  " + message_list() + "\n                </ul> \n          </article>\n        </section>\n        \n        </div>\n        \n        <!---------------------------SCRIPTS----------------------------->\n        \n        <script type=\"text/javascript\">\n            \n        //mostrar ou n\u00E3o a interface de mostragem dos dados\n            function mudar_dados(i){\n                document.getElementById('dados'+i).src=\"images/grey_server.png\"\n                document.getElementById('def'+i).src=\"images/def_white.png\"\n        \n                document.getElementById('lista_dados'+i).classList.remove('mostrar');\n                document.getElementById('lista_dados'+i).classList.add('lista_dados');\n                document.getElementById('lista_def'+i).classList.remove('lista_def');\n                document.getElementById('lista_def'+i).classList.add('mostrar');\n\n                mostrar+='&mostrar='+i+'sim'\n                \n            }\n\n            //mostrar ou n\u00E3o a interface de mudan\u00E7a de defeni\u00E7\u00F5es\n            function mudar_def(i){\n                document.getElementById('dados'+i).src=\"images/white_server.png\"\n                document.getElementById('def'+i).src=\"images/def_grey.png\"\n        \n                document.getElementById('lista_dados'+i).classList.remove('lista_dados');\n                document.getElementById('lista_dados'+i).classList.add('mostrar');\n                document.getElementById('lista_def'+i).classList.remove('mostrar');\n                document.getElementById('lista_def'+i).classList.add('lista_def');\n\n                mostrar+='&mostrar='+i+'nao'\n            }\n            \n            //fun\u00E7\u00E3o que atua quando procuramos mudar o valor do ar condicionado colocando nas menssagens laterais\n            function mudar_ac(){\n    \n                var titulo=document.getElementById('titulo').innerHTML;\n    \n                var titulo_sep = titulo.split(\" \");\n    \n                sala=titulo_sep[1];\n    \n                //console.log(titulo_sep[1])\n                console.log(sala)\n    \n                if(document.getElementById('ar_condicionado').innerHTML==\"Desactivar Ar condicionado\"){\n        \n                    document.getElementById('ar_condicionado').innerHTML=\"Ativar Ar condicionado\"\n        \n                    var today = new Date();\n        \n                    var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();\n        \n                    var time = today.getHours() + \":\" + today.getMinutes() + \":\" + today.getSeconds();\n        \n                    var dateTime = date+' '+time+'\u21E8';\n        \n                    var list = document.getElementById('lista');\n                    var entry = document.createElement('li');\n                    entry.appendChild(document.createTextNode(dateTime));\n                    entry.appendChild(document.createTextNode('Ar condicionado desativado sala: '));\n                    //console.log(i)\n                    entry.appendChild(document.createTextNode(sala));\n                    list.appendChild(entry);\n                    \n                    get+='&message_number='+dateTime+'Ar condicionado desativado sala: '+sala\n        \n                }\n                else{\n                    document.getElementById('ar_condicionado').innerHTML=\"Desactivar Ar condicionado\"\n        \n                    var today = new Date();\n        \n                    var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();\n        \n                    var time = today.getHours() + \":\" + today.getMinutes() + \":\" + today.getSeconds();\n        \n                    var dateTime = date+' '+time+'\u21E8';\n        \n                    var list = document.getElementById('lista');\n                    var entry = document.createElement('li');\n                    entry.appendChild(document.createTextNode(dateTime));\n                    entry.appendChild(document.createTextNode('Ar condicionado ativado sala: '));\n                    console.log(sala)\n                    entry.appendChild(document.createTextNode(sala));\n                    list.appendChild(entry);\n\n                    get+='&message_number='+dateTime+'Ar condicionado ativado sala: '+sala\n        \n                    console.log(entry)\n                }         \n            }\n            \n            //fun\u00E7\u00E3o que atua quando clicamos para mudar de sala\n            function mudar_sala(i){              \n                sala=i\n       \n                localStorage.removeItem('scrollPosition');\n\n                \n                for (let index = 1; index <= nr_nodos; index++) {\n     \n                  mostrar+='&mostrar='+index+'sim'\n                } \n                                \n                \n                location.replace('http://localhost:8080/?sala='+i+''+get+''+mostrar)\n\n\n                \n                console.log(get)\n            }\n\n            //funcao que aumenta o intervalo de reload temporariamente quando o utilizador interage com o formul\u00E1rio\n            function hold(){\n\n              clearInterval(intervalId);\n              intervalId = setInterval(reload, 15000);\n              console.log(\"reload to timer\")\n\n            }\n            \n            //funcao que atua no reload da p\u00E1gina \n            function reload(){\n\n              var titulo=document.getElementById('titulo').innerHTML;\n    \n              var titulo_sep = titulo.split(\" \");\n  \n              i=titulo_sep[1];\n\n              location.replace('http://localhost:8080/?sala='+i+''+get+''+mostrar)\n\n              \n\n              }\n          \n            //intervalo para dar auto reload \u00E0 janela\n            //var intervalId = setInterval(reload, 5000);\n\n            //fun\u00E7\u00E3o para manter o mesmo n\u00EDvel de scroll na p\u00E1gina\n              window.addEventListener('load',function() {\n                if(localStorage.getItem('scrollPosition') !== null)\n                   window.scrollTo(0, localStorage.getItem('scrollPosition'));\n            },false);\n    \n        </script>\n        \n        </body>\n        </html> \n      ");
+                                            res.send("<html>\n        <head>\n        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n        <meta charset=\"UTF-8\">\n        <style>\n        \n        .sidenav {\n          height: 100%;\n          width: 160px;\n          position: fixed;\n          z-index: 1;\n          top: 0;\n          left: 0;\n          background-color: #111;\n          overflow-x: hidden;\n          padding-top: 20px;\n        }\n        \n        .sidenav a {\n          padding: 6px 8px 6px 16px;\n          text-decoration: none;\n          font-size: 25px;\n          color: #818181;\n          display: block;\n        }\n        \n        .sidenav a:hover {\n          color: #f1f1f1;\n        }\n        \n        .main {\n          margin-left: 160px; /* Same as the width of the sidenav */\n          font-size: 28px; /* Increased text to enable scrolling */\n          padding: 0px 10px;\n        }\n        \n        @media screen and (max-height: 450px) {\n          .sidenav {padding-top: 15px;}\n          .sidenav a {font-size: 18px;}\n        }\n        ul.menu li {\n          display:inline;\n        }\n        ul#lista li {\n          display: list-item;\n        }\n        \n        ul.lista_dados li {\n          display: list-item;\n        }\n        \n        ul.lista_def li {\n          display: list-item;\n        }\n        \n        article {\n          float: left;\n          padding: 20px;\n          width: 50%;\n          background-color: #f1f1f1;\n         \n        \n        }\n        \n        * {\n          box-sizing: border-box;\n        }\n        \n        /* Create two columns/boxes that floats next to each other */\n        nav {\n          float: left;\n          width: 50%;\n          background: #ccc;\n          padding: 20px;\n          \n        }\n        \n        nav ul {\n          list-style-type: none;\n          padding: 0;\n        }\n        \n        .def:hover {\n            opacity: 0.5;\n        }\n        .mostrar{\n            display: none;\n        }\n        .danger{\n            color: red;\n        }\n        </style>\n\n        <script type=\"text/javascript\">\n             \n            var get='';\n\n            var mostrar='';\n            \n            var nr_nodos=" + nr_nodos + "\n            \n            console.log(get)\n\n            //fun\u00E7\u00E3o que trata dos dados ap\u00F3s clicarmos no bot\u00E3o de enviar\n            function validateFormOnSubmit(theForm) {\n        \n                var sala = theForm.sala.value;\n                var  freq_tem= theForm.freq_tem.value;\n                var freq_fum = theForm.freq_fum.value;\n                if (sala==3) {\n        \n                    var today = new Date();\n        \n                    var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();\n        \n                    var time = today.getHours() + \":\" + today.getMinutes() + \":\" + today.getSeconds();\n        \n                    var dateTime = date+' '+time+'\u21E8';\n        \n                    var list = document.getElementById('lista');\n                    var entry = document.createElement('li');\n                    entry.appendChild(document.createTextNode(dateTime));\n                    entry.appendChild(document.createTextNode('Foi realizada a mudan\u00E7a para a sala '));\n                    entry.appendChild(document.createTextNode(sala));\n                    list.appendChild(entry);\n\n                    get+='&message_number='+dateTime+'Foi realizada a mudan\u00E7a para a sala '+sala\n                }\n        \n                console.log(time)\n                return false;\n            }\n\n            window.addEventListener('scroll',function() {\n              //When scroll change, you save it on localStorage.\n              localStorage.setItem('scrollPosition',window.scrollY);\n          },false);\n        \n        </script>\n        \n        </head>\n        <body>\n        \n        <!---------------------------MENU LATERAL----------------------------->\n        \n        <div id=\"menu_lateral\" class=\"sidenav\">\n        " + salas() + "\n        </div>\n        \n        <div class=\"main\">\n        \n            <!---------------------------PARTE SUPERIOR----------------------------->\n            <header>\n                  " + titulo() + "\n                  <span>Indice de Manuten\u00E7\u00E3o: 75%\n                  <button onclick=\"mudar_ac()\" id=\"ar_condicionado\" style=\"margin-left: 21%; padding: 10px;\">Ativar Ar Condicionado</button></span>\n            </header>\n        \n          <section style=\"margin-top: 10px\">\n        \n              <!---------------------------PARTE INTERIOR ESQUERDA----------------------------->\n          <nav id=\"nodos\">\n        \n            " + nodos() + "\n      \n          </nav>\n          <!---------------------------PARTE INTERIOR DIREITA----------------------------->\n          <article>\n            <h1>A\u00E7\u00F5es Realizadas:</h1>\n                <ul id=\"lista\" >\n                  " + message_list() + "\n                </ul> \n          </article>\n        </section>\n        \n        </div>\n        \n        <!---------------------------SCRIPTS----------------------------->\n        \n        <script type=\"text/javascript\">\n            \n        //mostrar ou n\u00E3o a interface de mostragem dos dados\n            function mudar_dados(i){\n                document.getElementById('dados'+i).src=\"images/grey_server.png\"\n                document.getElementById('def'+i).src=\"images/def_white.png\"\n        \n                document.getElementById('lista_dados'+i).classList.remove('mostrar');\n                document.getElementById('lista_dados'+i).classList.add('lista_dados');\n                document.getElementById('lista_def'+i).classList.remove('lista_def');\n                document.getElementById('lista_def'+i).classList.add('mostrar');\n\n                mostrar+='&mostrar='+i+'sim'\n                \n            }\n\n            //mostrar ou n\u00E3o a interface de mudan\u00E7a de defeni\u00E7\u00F5es\n            function mudar_def(i){\n                document.getElementById('dados'+i).src=\"images/white_server.png\"\n                document.getElementById('def'+i).src=\"images/def_grey.png\"\n        \n                document.getElementById('lista_dados'+i).classList.remove('lista_dados');\n                document.getElementById('lista_dados'+i).classList.add('mostrar');\n                document.getElementById('lista_def'+i).classList.remove('mostrar');\n                document.getElementById('lista_def'+i).classList.add('lista_def');\n\n                mostrar+='&mostrar='+i+'nao'\n            }\n            \n            //fun\u00E7\u00E3o que atua quando procuramos mudar o valor do ar condicionado colocando nas menssagens laterais\n            function mudar_ac(){\n    \n                var titulo=document.getElementById('titulo').innerHTML;\n    \n                var titulo_sep = titulo.split(\" \");\n    \n                sala=titulo_sep[1];\n    \n                //console.log(titulo_sep[1])\n                console.log(sala)\n    \n                if(document.getElementById('ar_condicionado').innerHTML==\"Desactivar Ar condicionado\"){\n        \n                    document.getElementById('ar_condicionado').innerHTML=\"Ativar Ar condicionado\"\n        \n                    var today = new Date();\n        \n                    var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();\n        \n                    var time = today.getHours() + \":\" + today.getMinutes() + \":\" + today.getSeconds();\n        \n                    var dateTime = date+' '+time+'\u21E8';\n        \n                    var list = document.getElementById('lista');\n                    var entry = document.createElement('li');\n                    entry.appendChild(document.createTextNode(dateTime));\n                    entry.appendChild(document.createTextNode('Ar condicionado desativado sala: '));\n                    //console.log(i)\n                    entry.appendChild(document.createTextNode(sala));\n                    list.appendChild(entry);\n                    \n                    get+='&message_number='+dateTime+'Ar condicionado desativado sala: '+sala\n        \n                }\n                else{\n                    document.getElementById('ar_condicionado').innerHTML=\"Desactivar Ar condicionado\"\n        \n                    var today = new Date();\n        \n                    var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();\n        \n                    var time = today.getHours() + \":\" + today.getMinutes() + \":\" + today.getSeconds();\n        \n                    var dateTime = date+' '+time+'\u21E8';\n        \n                    var list = document.getElementById('lista');\n                    var entry = document.createElement('li');\n                    entry.appendChild(document.createTextNode(dateTime));\n                    entry.appendChild(document.createTextNode('Ar condicionado ativado sala: '));\n                    console.log(sala)\n                    entry.appendChild(document.createTextNode(sala));\n                    list.appendChild(entry);\n\n                    get+='&message_number='+dateTime+'Ar condicionado ativado sala: '+sala\n        \n                    console.log(entry)\n                }         \n            }\n            \n            //fun\u00E7\u00E3o que atua quando clicamos para mudar de sala\n            function mudar_sala(i){              \n                sala=i\n       \n                localStorage.removeItem('scrollPosition');\n\n                \n                for (let index = 1; index <= nr_nodos; index++) {\n     \n                  mostrar+='&mostrar='+index+'sim'\n                } \n                                \n                \n                location.replace('http://localhost:8080/?sala='+i+''+get+''+mostrar)\n\n\n                \n                console.log(get)\n            }\n\n            //funcao que aumenta o intervalo de reload temporariamente quando o utilizador interage com o formul\u00E1rio\n            function hold(){\n\n              clearInterval(intervalId);\n              intervalId = setInterval(reload, 15000);\n              console.log(\"reload to timer\")\n\n            }\n            \n            //funcao que atua no reload da p\u00E1gina \n            function reload(){\n\n              var titulo=document.getElementById('titulo').innerHTML;\n    \n              var titulo_sep = titulo.split(\" \");\n  \n              i=titulo_sep[1];\n\n              location.replace('http://localhost:8080/?sala='+i+''+get+''+mostrar)\n\n              \n\n              }\n          \n            //intervalo para dar auto reload \u00E0 janela\n            var intervalId = setInterval(reload, 5000);\n\n            //fun\u00E7\u00E3o para manter o mesmo n\u00EDvel de scroll na p\u00E1gina\n              window.addEventListener('load',function() {\n                if(localStorage.getItem('scrollPosition') !== null)\n                   window.scrollTo(0, localStorage.getItem('scrollPosition'));\n            },false);\n    \n        </script>\n        \n        </body>\n        </html> \n      ");
                                             return [2 /*return*/];
                                     }
                                 });

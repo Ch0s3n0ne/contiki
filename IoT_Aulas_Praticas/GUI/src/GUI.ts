@@ -12,8 +12,14 @@ const port = 8080;
 app.use(express.static(__dirname + '/public'));
 var nr_nodos=1;
 var sala=1;
+var sala_anterior=0;
 var string_mensagens=''
 var nodos_mostrar=[];
+var id_array=[];
+var smoke_array=[];
+var temp_array=[];
+
+
 
 const dbclient = new DynamoDBClient({ region: REGION });
 
@@ -53,22 +59,11 @@ const dbclient = new DynamoDBClient({ region: REGION });
     } catch (err) {
       console.log("Error", err);
     }
-    console.log(nr_salas)
-
-    var i=1;
-    var id_array=[];
-    var room_array=[];
-
+//    console.log(nr_salas)
 
 
 // -----------------------------------funções de contrução da interface-----------------------------------------------------------
 
-
-
-for (let index = 1; index <= nr_nodos; index++) {
-      
-  nodos_mostrar.push(index)
-}
 
 
 
@@ -108,6 +103,8 @@ function nodos(){
     var print1=''
     var print11=''
     var print21=''
+    console.log("nodos a mostrar")
+    console.log(nodos_mostrar)
     for (let i = 0; i < nr_nodos; i++) {
 
       if (nodos_mostrar.includes(i+1)){
@@ -130,19 +127,19 @@ function nodos(){
       x+=    '</li>'
       x+=    '<li>'
       x+=    '<ul class="'+print1+'" id="lista_dados'+(i+1)+'" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 300px">'
-      x+=        '<li>ID: 1</li>'
+      x+=        '<li>ID: '+id_array[i]+'</li>'
       x+=        '<li>Temperatura: '+l+'</li>'
       x+=        '<li>Humidade: </li>'
       x+=        '<li>Fumo: </li>'
       x+=    '</ul> '
       x+=    '<ul class="'+print2+'" id="lista_def'+(i+1)+'" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 400px">'
       x+=        '<form action="#" onsubmit="return validateFormOnSubmit(this);" style="margin-left: 5px;">'
-      x+=            '<label style="margin-top: 5px;" for="sala">Sala:</label><br>'
-      x+=           '<input onclick="hold()"  type="number" min="1" max="'+nr_nodos+'" id="sala" name="sala" value="1"><br><br>'
-      x+=            '<label for="freq_tem">Tempo de aquisição Temp/Hum:</label><br>'
-      x+=           '<input onclick="hold()"  type="number"  min="1" step="any" id="freq_tem" name="freq_tem" value="50">s<br><br>'
+      x+=           '<label style="margin-top: 5px;" for="sala">Sala:</label><br>'
+      x+=           '<input onclick="hold()"  type="number" min="1" max="'+nr_nodos+'" id="sala" name="sala" value="'+sala+'"><br><br>'
+      x+=           '<label for="freq_tem">Tempo de aquisição Temp/Hum:</label><br>'
+      x+=           '<input onclick="hold()"  type="number"  min="1" step="any" id="freq_tem" name="freq_tem" value="'+temp_array[i]+'">s<br><br>'
       x+=           '<label for="freq_fum">Tempo de aquisição Fumo:</label><br>'
-      x+=           '<input onclick="hold()"  type="number"  min="1" step="any" id="freq_fum" name="freq_fum" value="50">s<br><br>'
+      x+=           '<input onclick="hold()"  type="number"  min="1" step="any" id="freq_fum" name="freq_fum" value="'+smoke_array[i]+'">s<br><br>'
       x+=           '<input style=" padding: 5px; float:right;" type="submit" value="Enviar">'
       x+=       '</form>'
       x+=   '</ul>'  
@@ -245,14 +242,21 @@ app.get('/', (req, res) => {
         }   
     }
     }
-    var conv=req.query.sala+''  
-        sala=parseInt(conv)
+    var conv=req.query.sala+''
+    sala=parseInt(conv)
+    if(!sala){
+      sala=1
+    }
 
         async function contagem_de_nodos() {
 
 
           console.log("correu função no reload")
+
+          if(sala!=sala_anterior){
           id_array=[];
+          smoke_array=[]
+          temp_array=[]
 
           // Set the parameters
             const params = {
@@ -262,7 +266,7 @@ app.get('/', (req, res) => {
                 ":s": { N: ""+sala+"" },
           
               },
-              ProjectionExpression: "ROOM_ID, DEV_ID",
+              ProjectionExpression: "ROOM_ID, DEV_ID, Smoke_Rate, TempHum_Rate",
               TableName: "CONFIGURATION",
             };
 
@@ -270,7 +274,9 @@ app.get('/', (req, res) => {
               const results = await dbclient.send(new QueryCommand(params));
               results.Items.forEach(function (element, index, array) {
                 console.log(element.DEV_ID.N );
-                id_array.push(element.DEV_ID.N);            
+                id_array.push(element.DEV_ID.N);
+                smoke_array.push(element.Smoke_Rate.N);
+                temp_array.push(element.TempHum_Rate.N);            
               });
 
             } catch (err) {
@@ -278,12 +284,21 @@ app.get('/', (req, res) => {
             }
             console.log("ids na sala")
             console.log(id_array)
+            console.log(smoke_array)
+            console.log(temp_array)
 
             nr_nodos=id_array.length
-
-            console.log(nr_nodos)
-
             
+            nodos_mostrar=[];
+
+            for (let index = 1; index <= nr_nodos; index++) {
+      
+              nodos_mostrar.push(index)
+            }
+
+            sala_anterior=sala
+          }
+              
 
     //--------------------------------print da página HTML------------------------------------------
     
@@ -601,7 +616,7 @@ app.get('/', (req, res) => {
               }
           
             //intervalo para dar auto reload à janela
-            //var intervalId = setInterval(reload, 5000);
+            var intervalId = setInterval(reload, 5000);
 
             //função para manter o mesmo nível de scroll na página
               window.addEventListener('load',function() {

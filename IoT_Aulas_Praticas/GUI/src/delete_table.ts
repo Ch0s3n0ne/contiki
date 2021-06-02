@@ -9,7 +9,7 @@ const {
   
   // Set the parameters
   const params = {
-    TableName: "TABLE_NAME",
+    TableName: "ar_condicionado_sala",
   };
   
   // Create DynamoDB service object

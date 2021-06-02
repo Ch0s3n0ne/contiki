@@ -18,29 +18,29 @@ const {
 const params = {
     AttributeDefinitions: [
       {
-        AttributeName: "ROOM_ID", //ATTRIBUTE_NAME_1
+        AttributeName: "DEV_ID", //ATTRIBUTE_NAME_1
         AttributeType: "N", //ATTRIBUTE_TYPE
       },
-      {
+      /*{
         AttributeName: "DEV_ID", //ATTRIBUTE_NAME_2
         AttributeType: "N", //ATTRIBUTE_TYPE
-      },
+      },*/
     ],
     KeySchema: [
       {
-        AttributeName: "ROOM_ID", //ATTRIBUTE_NAME_1
+        AttributeName: "DEV_ID", //ATTRIBUTE_NAME_1
         KeyType: "HASH",
       },
-      {
+      /*{
         AttributeName: "DEV_ID", //ATTRIBUTE_NAME_2
         KeyType: "RANGE",
-      },
+      },*/
     ],
     ProvisionedThroughput: {
       ReadCapacityUnits: 1,
       WriteCapacityUnits: 1,
     },
-    TableName: "CONFIGURATION", //TABLE_NAME
+    TableName: "configuration", //TABLE_NAME
     StreamSpecification: {
       StreamEnabled: false,
     },

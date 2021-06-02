@@ -35,37 +35,67 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 var _this = this;
+/* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+SPDX-License-Identifier: Apache-2.0
+
+ABOUT THIS NODE.JS EXAMPLE: This example works with AWS SDK for JavaScript version 3 (v3),
+which is available at https://github.com/aws/aws-sdk-js-v3. This example is in the 'AWS SDK for JavaScript v3 Developer Guide' at
+https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/dynamodb-example-table-read-write.html.
+
+Purpose:
+ddb_deleteitem.js demonstrates how to delete an item from an Amazon DynamoDB table.
+
+Inputs (replace in code):
+- REGION
+- TABLE
+- KEY_NAME
+- VALUE
+
+Running the code:
+ts-node ddb_deleteitem.js
+
+*/
+// snippet-start:[dynamodb.JavaScript.item.deleteItemV3]
 // Import required AWS SDK clients and commands for Node.js
-var _a = require("@aws-sdk/client-dynamodb"), DynamoDBClient = _a.DynamoDBClient, PutItemCommand = _a.PutItemCommand;
-// Set the AWS Region
+var _a = require("@aws-sdk/client-dynamodb"), DynamoDBClient = _a.DynamoDBClient, DeleteItemCommand = _a.DeleteItemCommand;
+// Set the AWS Region.
 var REGION = "eu-west-1"; //e.g. "us-east-1"
+// Create an Amazon S3 service client object.
+var ddbClient = new DynamoDBClient({ region: REGION });
 // Set the parameters
 var params = {
     TableName: "ar_condicionado_sala",
-    Item: {
+    KEY: {
         ROOM_ID: { N: "2" },
         AC: { N: "0" }
     }
 };
-// Create DynamoDB service object
-var dbclient = new DynamoDBClient({ region: REGION });
 var run = function () { return __awaiter(_this, void 0, void 0, function () {
     var data, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, dbclient.send(new PutItemCommand(params))];
+                console.log(params);
+                return [4 /*yield*/, ddbClient.send(new DeleteItemCommand(params))];
             case 1:
                 data = _a.sent();
-                console.log(data);
-                return [3 /*break*/, 3];
+                console.log("Success, table deleted", data);
+                return [2 /*return*/, data];
             case 2:
                 err_1 = _a.sent();
-                console.error(err_1);
+                if (err_1 && err_1.code === "ResourceNotFoundException") {
+                    console.log("Error: Table not found");
+                }
+                else if (err_1 && err_1.code === "ResourceInUseException") {
+                    console.log("Error: Table in use");
+                }
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
     });
 }); };
 run();
+// snippet-end:[dynamodb.JavaScript.item.deleteItemV3]
+// For unit tests only.
+// module.exports ={run, params};

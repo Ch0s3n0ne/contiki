@@ -134,6 +134,7 @@ function nodos(){
       x+=    '</ul> '
       x+=    '<ul class="'+print2+'" id="lista_def'+(i+1)+'" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 400px">'
       x+=        '<form action="#" onsubmit="return validateFormOnSubmit(this);" style="margin-left: 5px;">'
+      x+=           '<input style="display: none;" onclick="hold()"  type="number" id="dev_id" name="dev_id" value="'+id_array[i]+'"><br><br>' 
       x+=           '<label style="margin-top: 5px;" for="sala">Sala:</label><br>'
       x+=           '<input onclick="hold()"  type="number" min="1" max="'+nr_nodos+'" id="sala" name="sala" value="'+sala+'"><br><br>'
       x+=           '<label for="freq_tem">Tempo de aquisição Temp/Hum:</label><br>'
@@ -259,33 +260,51 @@ app.get('/', (req, res) => {
           temp_array=[]
 
           // Set the parameters
-            const params = {
-              KeyConditionExpression: "ROOM_ID = :s ",
-            
-              ExpressionAttributeValues: {
-                ":s": { N: ""+sala+"" },
+          const params = {
+            // Specify which items in the results are returned.
+            FilterExpression: "ROOM_ID = :s ",
+            // Define the expression attribute value, which are substitutes for the values you want to compare.
+            ExpressionAttributeValues: {
+              
+              ":s": { N: ""+sala+"" },
+              
+            },
+            // Set the projection expression, which the the attributes that you want.
+            ProjectionExpression: "ROOM_ID, DEV_ID , Smoke_Rate, TempHum_Rate ",
+            TableName: "configuration",
+          };
+
+          try {
+            const data = await dbclient.send(new ScanCommand(params));
+            data.Items.forEach(function (element, index, array) {
+              console.log(element.DEV_ID.N);
+              id_array.push(element.DEV_ID.N)
+              smoke_array.push(element.Smoke_Rate.N)
+              temp_array.push(element.TempHum_Rate.N)
+              //nr_resultados=nr_resultados+1;
+              return data;
+            });
+          } catch (err) {
+            console.log("Error", err);
+          }
           
-              },
-              ProjectionExpression: "ROOM_ID, DEV_ID, Smoke_Rate, TempHum_Rate",
-              TableName: "CONFIGURATION",
-            };
+          id_array.sort();
 
-            try {
-              const results = await dbclient.send(new QueryCommand(params));
-              results.Items.forEach(function (element, index, array) {
-                console.log(element.DEV_ID.N );
-                id_array.push(element.DEV_ID.N);
-                smoke_array.push(element.Smoke_Rate.N);
-                temp_array.push(element.TempHum_Rate.N);            
-              });
-
-            } catch (err) {
-              console.error(err);
-            }
-            console.log("ids na sala")
-            console.log(id_array)
-            console.log(smoke_array)
-            console.log(temp_array)
+          var reference_object = {};
+          for (var i = 0; i < id_array.length; i++) {
+              reference_object[id_array[i]] = i;
+          }
+        
+          smoke_array.sort(function(a, b) {
+            return reference_object[a] - reference_object[b];
+          });
+          temp_array.sort(function(a, b) {
+            return reference_object[a] - reference_object[b];
+          });
+        
+          console.log(id_array)
+          console.log(smoke_array)
+          console.log(temp_array)
 
             nr_nodos=id_array.length
             
@@ -412,6 +431,8 @@ app.get('/', (req, res) => {
                 var sala = theForm.sala.value;
                 var  freq_tem= theForm.freq_tem.value;
                 var freq_fum = theForm.freq_fum.value;
+                var dev_id = theForm.dev_id.value;
+                console.log(dev_id)
                 if (sala==3) {
         
                     var today = new Date();

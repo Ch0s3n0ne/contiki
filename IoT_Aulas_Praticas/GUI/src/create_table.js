@@ -43,29 +43,21 @@ var REGION = "eu-west-1"; //e.g. "us-east-1"
 var params = {
     AttributeDefinitions: [
         {
-            AttributeName: "ROOM_ID",
-            AttributeType: "N"
-        },
-        {
             AttributeName: "DEV_ID",
             AttributeType: "N"
         },
     ],
     KeySchema: [
         {
-            AttributeName: "ROOM_ID",
-            KeyType: "HASH"
-        },
-        {
             AttributeName: "DEV_ID",
-            KeyType: "RANGE"
+            KeyType: "HASH"
         },
     ],
     ProvisionedThroughput: {
         ReadCapacityUnits: 1,
         WriteCapacityUnits: 1
     },
-    TableName: "CONFIGURATION",
+    TableName: "configuration",
     StreamSpecification: {
         StreamEnabled: false
     }

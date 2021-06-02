@@ -6,10 +6,10 @@ const REGION = "eu-west-1"; //e.g. "us-east-1"
 
 // Set the parameters
 const params = {
-  TableName: "TABLE_NAME",
+  TableName: "ar_condicionado_sala",
   Item: {
-    CUSTOMER_ID: { N: "001" },
-    CUSTOMER_NAME: { S: "Richard Roe" },
+    ROOM_ID: { N: "2" },
+    AC: { N: "0" },
   },
 };
 

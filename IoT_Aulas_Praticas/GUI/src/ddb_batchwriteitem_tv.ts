@@ -28,7 +28,7 @@ const ddbClient = new DynamoDBClient({ region: REGION });
 
 const params = {
   RequestItems: {
-    CONFIGURATION: [
+    configuration: [
       {
         PutRequest: {
           Item: {

@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -35,67 +34,74 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-exports.__esModule = true;
-var _a = require("@aws-sdk/lib-dynamodb"), DynamoDBDocumentClient = _a.DynamoDBDocumentClient, UpdateCommand = _a.UpdateCommand;
-var DynamoDBClient = require("@aws-sdk/client-dynamodb").DynamoDBClient;
+var _this = this;
+/* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+SPDX-License-Identifier: Apache-2.0
+
+ABOUT THIS NODE.JS EXAMPLE: This example works with AWS SDK for JavaScript version 3 (v3),
+which is available at https://github.com/aws/aws-sdk-js-v3. This example is in the 'AWS SDK for JavaScript v3 Developer Guide' at
+https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/dynamodb-example-document-client.html.
+
+Purpose:
+ddbdoc_update_item.js demonstrates how to use the Amazon DynamoDB document client to create or update an item in an Amazon DynamoDB table.
+
+Inputs (replace in code):
+- TABLE_NAME
+- REGION
+- primaryKey - Name of the primary key. For example, "id".
+- VALUE_1
+- sortKey - Name of the sor key. For example, "firstName".
+- VALUE_2
+- NEW_ATTRIBUTE_VALUE_1
+- NEW_ATTRIBUTE_VALUE_2
+
+Running the code:
+ts-node ddbdoc_update_item.js
+*/
+// snippet-start:[dynamodb.JavaScript.docClient.updateV3]
+var _a = require("@aws-sdk/client-dynamodb"), UpdateItemCommand = _a.UpdateItemCommand, DynamoDBClient = _a.DynamoDBClient;
 // Set the AWS Region.
 var REGION = "eu-west-1"; //e.g. "us-east-1"
 // Create an Amazon S3 service client object.
 var ddbClient = new DynamoDBClient({ region: REGION });
-// Set the AWS Region.
-// Create an Amazon S3 service client object.
-var client = new DynamoDBClient({ region: REGION });
-var marshallOptions = {
-    // Whether to automatically convert empty strings, blobs, and sets to `null`.
-    convertEmptyValues: false,
-    // Whether to remove undefined values while marshalling.
-    removeUndefinedValues: false,
-    // Whether to convert typeof object to map attribute.
-    convertClassInstanceToMap: false
-};
-var unmarshallOptions = {
-    // Whether to return numbers as a string instead of converting them to native JavaScript numbers.
-    wrapNumbers: false
-};
-var translateConfig = { marshallOptions: marshallOptions, unmarshallOptions: unmarshallOptions };
-// Create the DynamoDB Document client.
-var ddbDocClient = DynamoDBDocumentClient.from(client, translateConfig);
 // Set the parameters
 var params = {
-    TableName: "TABLE_NAME",
-    /*
-    Convert the attribute JavaScript object you are updating to the required
-    Amazon  DynamoDB record. The format of values specifies the datatype. The
-    following list demonstrates different datatype formatting requirements:
-    String: "String",
-    NumAttribute: 1,
-    BoolAttribute: true,
-    ListAttribute: [1, "two", false],
-    MapAttribute: { foo: "bar" },
-    NullAttribute: null
-     */
-    Key: {
-        CUSTOMER_ID: "2" // For example, 'Season': 2.
-        //sortKey: VALUE_2 // For example,  'Episode': 1; (only required if table has sort key).
+    ExpressionAttributeNames: {
+        "#AT": "Subtitle",
+        "#Y": "Title"
     },
-    // Define expressions for the new or updated attributes
-    UpdateExpression: "set CUSTOMER_NAME = :t, ALGO = :s",
     ExpressionAttributeValues: {
-        ":t": 'CUSTOMER_NAME',
-        ":s": 'ALGO'
-    }
+        ":t": {
+            S: "Louder Than Ever"
+        },
+        ":y": {
+            N: "2015"
+        }
+    },
+    Key: {
+        "Season": {
+            N: "1"
+        },
+        "Episode": {
+            N: "2"
+        }
+    },
+    ReturnValues: "ALL_NEW",
+    TableName: "EPISODES_TABLE",
+    UpdateExpression: "SET #Y = :y, #AT = :t"
 };
-var run = function () { return __awaiter(void 0, void 0, void 0, function () {
+var run = function () { return __awaiter(_this, void 0, void 0, function () {
     var data, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, ddbDocClient.send(new UpdateCommand(params))];
+                console.log(params);
+                return [4 /*yield*/, ddbClient.send(new UpdateItemCommand(params))];
             case 1:
                 data = _a.sent();
-                console.log("Success - item added or updated", data);
-                return [3 /*break*/, 3];
+                console.log("Success - item added or updated", data.Attributes.Episode.N);
+                return [2 /*return*/, data];
             case 2:
                 err_1 = _a.sent();
                 console.log("Error", err_1);
@@ -105,3 +111,6 @@ var run = function () { return __awaiter(void 0, void 0, void 0, function () {
     });
 }); };
 run();
+// snippet-end:[dynamodb.JavaScript.docClient.updateV3]
+// For unit tests only.
+// module.exports ={run, params};

@@ -41,7 +41,7 @@ var _a = require("@aws-sdk/client-dynamodb"), DynamoDBClient = _a.DynamoDBClient
 var REGION = "eu-west-1"; //e.g. "us-east-1"
 // Set the parameters
 var params = {
-    TableName: "TABLE_NAME"
+    TableName: "ar_condicionado_sala"
 };
 // Create DynamoDB service object
 var dbclient = new DynamoDBClient({ region: REGION });

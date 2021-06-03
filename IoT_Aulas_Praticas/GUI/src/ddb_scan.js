@@ -46,7 +46,7 @@ async function run() {
   try {
     const data = await dbclient.send(new ScanCommand(params));
     data.Items.forEach(function (element, index, array) {
-      console.log(element.DEV_ID.N);
+      //console.log(element.DEV_ID.N);
       id_array.push(element.DEV_ID.N)
       smoke_array.push(element.Smoke_Rate.N)
       temp_array.push(element.TempHum_Rate.N)
@@ -57,22 +57,51 @@ async function run() {
     console.log("Error", err);
   }
 
-  id_array.sort();
-  var reference_object = {};
-  for (var i = 0; i < id_array.length; i++) {
-      reference_object[id_array[i]] = i;
+  var old_id_array = id_array.slice();
+
+  id_array.sort()
+
+  var changes_array=[]
+
+  for (let index = 0; index < old_id_array.length; index++) {
+
+    for (let index1 = 0; index1 < id_array.length; index1++) {
+
+      if (old_id_array[index]==id_array[index1]) {
+
+        changes_array.push(index1)
+
+      } 
+    }
+    
   }
-
-  smoke_array.sort(function(a, b) {
-    return reference_object[a] - reference_object[b];
-  });
-  temp_array.sort(function(a, b) {
-    return reference_object[a] - reference_object[b];
-  });
-
-  console.log(id_array)
   console.log(smoke_array)
   console.log(temp_array)
+  var new_smoke_array=[];
+
+  var new_temp_array=[];
+  var i1=0;
+
+  for (let index = 0; index < changes_array.length; index++) {
+
+    for (let index1 = 0; index1 < changes_array.length; index1++) {
+
+      if (index==changes_array[index1]) {
+        new_smoke_array.push(smoke_array[index1])
+        new_temp_array.push(temp_array[index1]) 
+      }   
+    }      
+  }
+
+  smoke_array=new_smoke_array
+  temp_array=new_temp_array
+
+  console.log(old_id_array)
+  console.log(id_array)
+  console.log(changes_array)
+  console.log(smoke_array)
+  console.log(temp_array)
+
 }
 run();
 // snippet-end:[dynamodb.JavaScript.table.scanV3]

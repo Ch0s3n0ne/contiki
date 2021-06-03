@@ -43,13 +43,13 @@ var REGION = "eu-west-1"; //e.g. "us-east-1"
 var params = {
     AttributeDefinitions: [
         {
-            AttributeName: "DEV_ID",
+            AttributeName: "ROOM_ID",
             AttributeType: "N"
         },
     ],
     KeySchema: [
         {
-            AttributeName: "DEV_ID",
+            AttributeName: "ROOM_ID",
             KeyType: "HASH"
         },
     ],
@@ -57,7 +57,7 @@ var params = {
         ReadCapacityUnits: 1,
         WriteCapacityUnits: 1
     },
-    TableName: "configuration",
+    TableName: "ar_condicionado_sala",
     StreamSpecification: {
         StreamEnabled: false
     }

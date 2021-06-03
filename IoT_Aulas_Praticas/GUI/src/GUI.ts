@@ -15,7 +15,8 @@ var nr_nodos=1;
 var sala=1;
 var sala_anterior=0;
 var string_mensagens=''
-var i=0;
+var ac_ativado=1;
+var atualizar_ac=1;
 var nodos_mostrar=[];
 var id_array=[];
 var smoke_array=[];
@@ -56,6 +57,7 @@ const dbclient = new DynamoDBClient({ region: REGION });
       data.Items.forEach(function (element, index, array) {
         //console.log(element.ROOM_ID.N + " (" + element.AC.N + ")");
         nr_salas=nr_salas+1;
+
         return data;
       });
     } catch (err) {
@@ -189,6 +191,18 @@ function message_list(){
  
 }
 
+function estado_cond(){
+  var x=''
+
+  if (ac_ativado==1) {
+     x+='<button onclick="mudar_ac()" id="ar_condicionado" style="margin-left: 21%; padding: 10px;">Desactivar Ar condicionado</button></span>'
+  }
+  else{
+      x+='<button onclick="mudar_ac()" id="ar_condicionado" style="margin-left: 21%; padding: 10px;">Ativar Ar Condicionado</button></span>'
+  }
+  return(x)
+}
+
 app.get('/', (req, res) => {
 
   //-------------------------------------processamento de comandos GET------------------------------------------------
@@ -247,6 +261,7 @@ app.get('/', (req, res) => {
     }
     var dev_id=req.query.pedido_update_id;
 
+    var mudar_ac = req.query.mudar_cond
     
 
     async function update_parametros(){
@@ -295,6 +310,39 @@ app.get('/', (req, res) => {
         sala_anterior=0
         
     }
+    if (mudar_ac) {
+
+      try {
+        
+        const params = {
+          ExpressionAttributeNames: {
+          "#AC": "AC",
+        
+          }, 
+          ExpressionAttributeValues: {
+          ":t": {
+            N: ""+mudar_ac+""
+            }, 
+          }, 
+          Key: {
+          "ROOM_ID": {
+            N: ""+sala+""
+            }
+          }, 
+          //ReturnValues: "ALL_NEW", 
+          TableName: "ar_condicionado_sala", 
+          UpdateExpression: "SET  #AC = :t"
+        };
+      console.log(params)
+      const data = await dbclient.send(new UpdateItemCommand(params));
+      //console.log("Success - item added or updated", data);
+      //return data;
+    } catch (err) {
+      console.log("Error", err);
+    }
+    atualizar_ac=1
+      
+    }
 
 
 
@@ -338,25 +386,49 @@ app.get('/', (req, res) => {
                 smoke_array.push(element.Smoke_Rate.N)
                 temp_array.push(element.TempHum_Rate.N)
                 //nr_resultados=nr_resultados+1;
-                return data;
+                //return data;
               });
             } catch (err) {
               console.log("Error", err);
             }
             
-            id_array.sort();
+            var old_id_array = id_array.slice();
 
-            var reference_object = {};
-            for (var i = 0; i < id_array.length; i++) {
-                reference_object[id_array[i]] = i;
+            id_array.sort()
+          
+            var changes_array=[]
+          
+            for (let index = 0; index < old_id_array.length; index++) {
+          
+              for (let index1 = 0; index1 < id_array.length; index1++) {
+          
+                if (old_id_array[index]==id_array[index1]) {
+          
+                  changes_array.push(index1)
+          
+                } 
+              }
+              
+            }
+            var new_smoke_array=[];
+          
+            var new_temp_array=[];
+          
+          
+            for (let index = 0; index < changes_array.length; index++) {
+          
+              for (let index1 = 0; index1 < changes_array.length; index1++) {
+          
+                if (index==changes_array[index1]) {
+                  new_smoke_array.push(smoke_array[index1])
+                  new_temp_array.push(temp_array[index1]) 
+                }   
+              }      
             }
           
-            smoke_array.sort(function(a, b) {
-              return reference_object[a] - reference_object[b];
-            });
-            temp_array.sort(function(a, b) {
-              return reference_object[a] - reference_object[b];
-            });
+            smoke_array=new_smoke_array
+            temp_array=new_temp_array
+          
           
             console.log(id_array)
             console.log(smoke_array)
@@ -364,8 +436,7 @@ app.get('/', (req, res) => {
 
               nr_nodos=id_array.length
 
-              
-              
+            
               nodos_mostrar=[];
 
               for (let index = 1; index <= nr_nodos; index++) {
@@ -374,8 +445,38 @@ app.get('/', (req, res) => {
               }
         
               sala_anterior=sala
+              atualizar_ac=1
 
           }
+          if(atualizar_ac==1){
+
+            const params = {
+              KeyConditionExpression: "ROOM_ID = :s ",
+            
+              ExpressionAttributeValues: {
+                ":s": { N: ""+sala+"" },
+          
+              },
+              ProjectionExpression: "ROOM_ID, AC",
+              TableName: "ar_condicionado_sala",
+            };
+    
+            try {
+              const results = await dbclient.send(new QueryCommand(params));
+              results.Items.forEach(function (element, index, array) {
+                
+                ac_ativado=element.AC.N
+                
+              });
+        
+            } catch (err) {
+              console.error(err);
+            }
+            atualizar_ac=0;
+
+          }
+
+      
               
 
     //--------------------------------print da página HTML------------------------------------------
@@ -499,27 +600,31 @@ app.get('/', (req, res) => {
                 var dev_id = theForm.dev_id.value;
                 console.log(dev_id)                
 
-                if(i!=sala){
-                    var today = new Date();
-        
-                    var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
-        
-                    var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-        
-                    var dateTime = date+' '+time+'⇨';
-        
-                    var list = document.getElementById('lista');
-                    var entry = document.createElement('li');
-                    entry.appendChild(document.createTextNode(dateTime));
-                    entry.appendChild(document.createTextNode('Foi realizada a mudança de '+dev_id+' para a sala '));
-                    entry.appendChild(document.createTextNode(sala));
-                    list.appendChild(entry);
+                
+                var today = new Date();
+    
+                var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+    
+                var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+    
+                var dateTime = date+' '+time+'⇨';
+    
+                var list = document.getElementById('lista');
+                var entry = document.createElement('li');
+                entry.appendChild(document.createTextNode(dateTime));
+                entry.appendChild(document.createTextNode('Foi realizada uma mudança de configuração do '+dev_id+''));
+                list.appendChild(entry);
 
-                    get+='&message_number='+dateTime+'Foi realizada a mudança de '+dev_id+ ' para a sala '+sala+'&pedido_update_id='+dev_id+'&freq_tem='+freq_tem+'&freq_fum='+freq_fum+'&sala_destino='+sala
+                get+='&message_number='+dateTime+'Foi realizada uma mudança de configuração do '+dev_id+'&pedido_update_id='+dev_id+'&freq_tem='+freq_tem+'&freq_fum='+freq_fum+'&sala_destino='+sala
 
-                    location.replace('http://localhost:8080/?sala='+i+''+get+''+mostrar)
-                    console.log("correu location replace")
-                }
+                location.replace('http://localhost:8080/?sala='+i+''+get+''+mostrar)
+                console.log("correu location replace")
+            
+                
+
+
+
+
                // console.log(time)
                 return false;
             }
@@ -546,7 +651,7 @@ app.get('/', (req, res) => {
             <header>
                   `+titulo()+`
                   <span>Indice de Manutenção: 75%
-                  <button onclick="mudar_ac()" id="ar_condicionado" style="margin-left: 21%; padding: 10px;">Ativar Ar Condicionado</button></span>
+                  `+estado_cond()+`
             </header>
         
           <section style="margin-top: 10px">
@@ -631,7 +736,7 @@ app.get('/', (req, res) => {
                     entry.appendChild(document.createTextNode(sala));
                     list.appendChild(entry);
                     
-                    get+='&message_number='+dateTime+'Ar condicionado desativado sala: '+sala
+                    get+='&message_number='+dateTime+'Ar condicionado desativado sala: '+sala+'&mudar_cond='+0
 
                     location.replace('http://localhost:8080/?sala='+sala+''+get+''+mostrar)
         
@@ -655,7 +760,7 @@ app.get('/', (req, res) => {
                     entry.appendChild(document.createTextNode(sala));
                     list.appendChild(entry);
 
-                    get+='&message_number='+dateTime+'Ar condicionado ativado sala: '+sala
+                    get+='&message_number='+dateTime+'Ar condicionado ativado sala: '+sala+'&mudar_cond='+1
 
                     location.replace('http://localhost:8080/?sala='+sala+''+get+''+mostrar)
         
@@ -687,7 +792,7 @@ app.get('/', (req, res) => {
             function hold(){
 
               clearInterval(intervalId);
-              intervalId = setInterval(reload, 15000);
+              intervalId = setInterval(reload, 20000);
               console.log("reload to timer")
 
             }

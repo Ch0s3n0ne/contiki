@@ -18,7 +18,7 @@ const {
 const params = {
     AttributeDefinitions: [
       {
-        AttributeName: "DEV_ID", //ATTRIBUTE_NAME_1
+        AttributeName: "ROOM_ID", //ATTRIBUTE_NAME_1
         AttributeType: "N", //ATTRIBUTE_TYPE
       },
       /*{
@@ -28,7 +28,7 @@ const params = {
     ],
     KeySchema: [
       {
-        AttributeName: "DEV_ID", //ATTRIBUTE_NAME_1
+        AttributeName: "ROOM_ID", //ATTRIBUTE_NAME_1
         KeyType: "HASH",
       },
       /*{
@@ -40,7 +40,7 @@ const params = {
       ReadCapacityUnits: 1,
       WriteCapacityUnits: 1,
     },
-    TableName: "configuration", //TABLE_NAME
+    TableName: "ar_condicionado_sala", //TABLE_NAME
     StreamSpecification: {
       StreamEnabled: false,
     },

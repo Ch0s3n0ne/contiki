@@ -17,10 +17,24 @@ var sala_anterior=0;
 var string_mensagens=''
 var ac_ativado=1;
 var atualizar_ac=1;
+var IDM=0;
+
+
 var nodos_mostrar=[];
 var id_array=[];
 var smoke_array=[];
 var temp_array=[];
+var hum_array=[]
+var temp_array=[]
+var smokes_array=[]
+var ids_array=[]
+var time_stamps=[]
+var timestamp_anterior=0
+var indice=0;
+var index_array=[]
+var smoke_show=[]
+var temp_show=[]
+var hum_show=[]
 
 
 
@@ -132,9 +146,9 @@ function nodos(){
       x+=    '<li>'
       x+=    '<ul class="'+print1+'" id="lista_dados'+(i+1)+'" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 300px">'
       x+=        '<li>ID: '+id_array[i]+'</li>'
-      x+=        '<li>Temperatura: '+l+'</li>'
-      x+=        '<li>Humidade: </li>'
-      x+=        '<li>Fumo: </li>'
+      x+=        '<li>Temperatura: '+temp_show[i]+'</li>'
+      x+=        '<li>Humidade: '+hum_show[i]+'</li>'
+      x+=        '<li>Fumo: '+smoke_show[i]+'</li>'
       x+=    '</ul> '
       x+=    '<ul class="'+print2+'" id="lista_def'+(i+1)+'" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 400px">'
       x+=        '<form onsubmit="return validateFormOnSubmit(this);" style="margin-left: 5px;">'
@@ -195,7 +209,7 @@ function estado_cond(){
   var x=''
 
   if (ac_ativado==1) {
-     x+='<button onclick="mudar_ac()" id="ar_condicionado" style="margin-left: 21%; padding: 10px;">Desactivar Ar condicionado</button></span>'
+     x+='<button onclick="mudar_ac()" id="ar_condicionado" style="margin-left: 21%; padding: 10px;">Desactivar Ar Condicionado</button></span>'
   }
   else{
       x+='<button onclick="mudar_ac()" id="ar_condicionado" style="margin-left: 21%; padding: 10px;">Ativar Ar Condicionado</button></span>'
@@ -354,8 +368,20 @@ app.get('/', (req, res) => {
     //--------------------------------------------------inicio das funções async------------------------------------
         async function contagem_de_nodos() {
 
+          hum_array=[]
+          temp_array=[]
+          smokes_array=[]
+          ids_array=[]
+          time_stamps=[]
+          timestamp_anterior=0
+          indice=0;
+          index_array=[]
+          smoke_show=[]
+          temp_show=[]
+          hum_show=[]
 
           console.log("correu função no reload")
+
 
           if(sala!=sala_anterior){
 
@@ -381,7 +407,8 @@ app.get('/', (req, res) => {
             try {
               const data = await dbclient.send(new ScanCommand(params));
               data.Items.forEach(function (element, index, array) {
-                console.log(element.DEV_ID.N);
+                
+                //console.log(element.DEV_ID.N);
                 id_array.push(element.DEV_ID.N)
                 smoke_array.push(element.Smoke_Rate.N)
                 temp_array.push(element.TempHum_Rate.N)
@@ -430,9 +457,9 @@ app.get('/', (req, res) => {
             temp_array=new_temp_array
           
           
-            console.log(id_array)
-            console.log(smoke_array)
-            console.log(temp_array)
+           // console.log(id_array)
+           // console.log(smoke_array)
+           // console.log(temp_array)
 
               nr_nodos=id_array.length
 
@@ -448,6 +475,48 @@ app.get('/', (req, res) => {
               atualizar_ac=1
 
           }
+
+          const params = {
+            // Specify which items in the results are returned.
+            FilterExpression: "ROOM_ID = :s ",
+            // Define the expression attribute value, which are substitutes for the values you want to compare.
+            ExpressionAttributeValues: {
+              
+              ":s": { N: ""+sala+"" },
+              
+            },
+            // Set the projection expression, which the the attributes that you want.
+            ProjectionExpression: " Tmestamp ,DEV_ID , Temper ,Hum, Smoke, IDM ",
+            TableName: "dados_sensores",
+          };
+
+          try {
+            const data = await dbclient.send(new ScanCommand(params));
+            data.Items.forEach(function (element, index, array) {
+
+
+              if (id_array.includes(element.DEV_ID.N)) {
+
+                ids_array.push(element.DEV_ID.N)
+                hum_array.push(element.Hum.N)
+                smokes_array.push(element.Smoke.N)
+                time_stamps.push(element.Tmestamp.N)
+                temp_array.push(element.Temper.N)
+              }
+
+              IDM=element.IDM.N
+
+
+            });
+          } catch (err) {
+            console.log("Error", err);
+          }
+
+          console.log(time_stamps)
+          console.log(ids_array)
+          console.log(hum_array)
+          console.log(smokes_array)
+
           if(atualizar_ac==1){
 
             const params = {
@@ -475,6 +544,42 @@ app.get('/', (req, res) => {
             atualizar_ac=0;
 
           }
+//-----------------------------------------------------------------------------------------------------//
+          console.log(id_array)
+          for (let index1 = 0; index1 < id_array.length; index1++){
+
+            timestamp_anterior=0
+        
+            for (let index = 0; index < ids_array.length; index++){
+        
+              if (id_array[index1]==ids_array[index]) {
+        
+                if (ids_array[index]>timestamp_anterior) {
+        
+                  timestamp_anterior=ids_array[index]
+                  indice=index         
+                }
+              }
+            }
+        
+            index_array.push(indice)
+            
+          }
+        
+          console.log(index_array)
+        
+          for (let index = 0; index < index_array.length; index++) {
+        
+            smoke_show.push(smokes_array[index_array[index]])
+            temp_show.push(temp_array[index_array[index]])
+            hum_show.push(hum_array[index_array[index]])
+            
+          }
+        
+          console.log(smoke_show)
+          console.log(hum_show)
+          console.log(temp_show)
+
 
       
               
@@ -650,7 +755,7 @@ app.get('/', (req, res) => {
             <!---------------------------PARTE SUPERIOR----------------------------->
             <header>
                   `+titulo()+`
-                  <span>Indice de Manutenção: 75%
+                  <span>Indice de Manutenção: `+IDM+`%
                   `+estado_cond()+`
             </header>
         
@@ -716,9 +821,9 @@ app.get('/', (req, res) => {
                 //console.log(titulo_sep[1])
                 console.log(sala)
     
-                if(document.getElementById('ar_condicionado').innerHTML=="Desactivar Ar condicionado"){
+                if(document.getElementById('ar_condicionado').innerHTML=="Desactivar Ar Condicionado"){
         
-                    document.getElementById('ar_condicionado').innerHTML="Ativar Ar condicionado"
+                    document.getElementById('ar_condicionado').innerHTML="Ativar Ar Condicionado"
         
                     var today = new Date();
         
@@ -742,7 +847,7 @@ app.get('/', (req, res) => {
         
                 }
                 else{
-                    document.getElementById('ar_condicionado').innerHTML="Desactivar Ar condicionado"
+                    document.getElementById('ar_condicionado').innerHTML="Desactivar Ar Condicionado"
         
                     var today = new Date();
         

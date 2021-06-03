@@ -65,42 +65,43 @@ var REGION = "eu-west-1"; //e.g. "us-east-1"
 // Create an Amazon S3 service client object.
 var ddbClient = new DynamoDBClient({ region: REGION });
 // Set the parameters
-var params = {
-    ExpressionAttributeNames: {
-        "#AT": "Subtitle",
-        "#Y": "Title"
-    },
-    ExpressionAttributeValues: {
-        ":t": {
-            S: "Louder Than Ever"
-        },
-        ":y": {
-            N: "2015"
-        }
-    },
-    Key: {
-        "Season": {
-            N: "1"
-        },
-        "Episode": {
-            N: "2"
-        }
-    },
-    ReturnValues: "ALL_NEW",
-    TableName: "EPISODES_TABLE",
-    UpdateExpression: "SET #Y = :y, #AT = :t"
-};
 var run = function () { return __awaiter(_this, void 0, void 0, function () {
-    var data, err_1;
+    var params, data, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
+                params = {
+                    ExpressionAttributeNames: {
+                        "#SR": "Smoke_Rate",
+                        "#TR": "TempHum_Rate",
+                        "#RI": "ROOM_ID"
+                    },
+                    ExpressionAttributeValues: {
+                        ":t": {
+                            N: "5"
+                        },
+                        ":y": {
+                            N: "100"
+                        },
+                        ":z": {
+                            N: "2"
+                        }
+                    },
+                    Key: {
+                        "DEV_ID": {
+                            N: "1004"
+                        }
+                    },
+                    ReturnValues: "ALL_NEW",
+                    TableName: "configuration",
+                    UpdateExpression: "SET #SR = :y, #TR = :t, #RI = :z"
+                };
                 console.log(params);
                 return [4 /*yield*/, ddbClient.send(new UpdateItemCommand(params))];
             case 1:
                 data = _a.sent();
-                console.log("Success - item added or updated", data.Attributes.Episode.N);
+                console.log("Success - item added or updated", data);
                 return [2 /*return*/, data];
             case 2:
                 err_1 = _a.sent();

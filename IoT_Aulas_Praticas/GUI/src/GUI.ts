@@ -1,7 +1,7 @@
 import express = require('express');
 import { textSpanEnd } from 'typescript';
 
-const { DynamoDBClient, ScanCommand, QueryCommand } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBClient, ScanCommand, QueryCommand , UpdateItemCommand} = require("@aws-sdk/client-dynamodb");
 
 // Set the AWS Region
 const REGION = "eu-west-1"; //e.g. "us-east-1"
@@ -10,10 +10,12 @@ var tools = require('./function.js');
 const app=express();
 const port = 8080;
 app.use(express.static(__dirname + '/public'));
+
 var nr_nodos=1;
 var sala=1;
 var sala_anterior=0;
 var string_mensagens=''
+var i=0;
 var nodos_mostrar=[];
 var id_array=[];
 var smoke_array=[];
@@ -133,10 +135,10 @@ function nodos(){
       x+=        '<li>Fumo: </li>'
       x+=    '</ul> '
       x+=    '<ul class="'+print2+'" id="lista_def'+(i+1)+'" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 400px">'
-      x+=        '<form action="#" onsubmit="return validateFormOnSubmit(this);" style="margin-left: 5px;">'
+      x+=        '<form onsubmit="return validateFormOnSubmit(this);" style="margin-left: 5px;">'
       x+=           '<input style="display: none;" onclick="hold()"  type="number" id="dev_id" name="dev_id" value="'+id_array[i]+'"><br><br>' 
       x+=           '<label style="margin-top: 5px;" for="sala">Sala:</label><br>'
-      x+=           '<input onclick="hold()"  type="number" min="1" max="'+nr_nodos+'" id="sala" name="sala" value="'+sala+'"><br><br>'
+      x+=           '<input onclick="hold()"  type="number" min="1" max="'+nr_salas+'" id="sala" name="sala" value="'+sala+'"><br><br>'
       x+=           '<label for="freq_tem">Tempo de aquisição Temp/Hum:</label><br>'
       x+=           '<input onclick="hold()"  type="number"  min="1" step="any" id="freq_tem" name="freq_tem" value="'+temp_array[i]+'">s<br><br>'
       x+=           '<label for="freq_fum">Tempo de aquisição Fumo:</label><br>'
@@ -243,79 +245,136 @@ app.get('/', (req, res) => {
         }   
     }
     }
-    var conv=req.query.sala+''
-    sala=parseInt(conv)
-    if(!sala){
-      sala=1
+    var dev_id=req.query.pedido_update_id;
+
+    
+
+    async function update_parametros(){
+        
+    if(dev_id){
+      console.log("voltou a entrar")
+      var smoke_rate=req.query.freq_fum
+      var temp_rate=req.query.freq_tem
+      var sala_destino=req.query.sala_destino
+      try {
+        
+            const params = {
+              ExpressionAttributeNames: {
+              "#SR": "Smoke_Rate",
+              "#TR": "TempHum_Rate",
+              "#RI": "ROOM_ID",
+            
+              }, 
+              ExpressionAttributeValues: {
+              ":t": {
+                N: ""+temp_rate+""
+                }, 
+              ":y": {
+                N: ""+smoke_rate+""
+                },
+                ":z": {
+                  N: ""+sala_destino+""
+                },
+              }, 
+              Key: {
+              "DEV_ID": {
+                N: ""+dev_id+""
+                }
+              }, 
+              //ReturnValues: "ALL_NEW", 
+              TableName: "configuration", 
+              UpdateExpression: "SET #SR = :y, #TR = :t, #RI = :z"
+            };
+          console.log(params)
+          const data = await dbclient.send(new UpdateItemCommand(params));
+          //console.log("Success - item added or updated", data);
+          //return data;
+        } catch (err) {
+          console.log("Error", err);
+        }
+        sala_anterior=0
+        
     }
 
+
+
+      var conv=req.query.sala+''
+      sala=parseInt(conv)
+      if(!sala){
+        sala=1
+      }
+    //--------------------------------------------------inicio das funções async------------------------------------
         async function contagem_de_nodos() {
 
 
           console.log("correu função no reload")
 
           if(sala!=sala_anterior){
-          id_array=[];
-          smoke_array=[]
-          temp_array=[]
 
-          // Set the parameters
-          const params = {
-            // Specify which items in the results are returned.
-            FilterExpression: "ROOM_ID = :s ",
-            // Define the expression attribute value, which are substitutes for the values you want to compare.
-            ExpressionAttributeValues: {
-              
-              ":s": { N: ""+sala+"" },
-              
-            },
-            // Set the projection expression, which the the attributes that you want.
-            ProjectionExpression: "ROOM_ID, DEV_ID , Smoke_Rate, TempHum_Rate ",
-            TableName: "configuration",
-          };
+            id_array=[];
+            smoke_array=[]
+            temp_array=[]
 
-          try {
-            const data = await dbclient.send(new ScanCommand(params));
-            data.Items.forEach(function (element, index, array) {
-              console.log(element.DEV_ID.N);
-              id_array.push(element.DEV_ID.N)
-              smoke_array.push(element.Smoke_Rate.N)
-              temp_array.push(element.TempHum_Rate.N)
-              //nr_resultados=nr_resultados+1;
-              return data;
-            });
-          } catch (err) {
-            console.log("Error", err);
-          }
-          
-          id_array.sort();
+            // Set the parameters
+            const params = {
+              // Specify which items in the results are returned.
+              FilterExpression: "ROOM_ID = :s ",
+              // Define the expression attribute value, which are substitutes for the values you want to compare.
+              ExpressionAttributeValues: {
+                
+                ":s": { N: ""+sala+"" },
+                
+              },
+              // Set the projection expression, which the the attributes that you want.
+              ProjectionExpression: "ROOM_ID, DEV_ID , Smoke_Rate, TempHum_Rate ",
+              TableName: "configuration",
+            };
 
-          var reference_object = {};
-          for (var i = 0; i < id_array.length; i++) {
-              reference_object[id_array[i]] = i;
-          }
-        
-          smoke_array.sort(function(a, b) {
-            return reference_object[a] - reference_object[b];
-          });
-          temp_array.sort(function(a, b) {
-            return reference_object[a] - reference_object[b];
-          });
-        
-          console.log(id_array)
-          console.log(smoke_array)
-          console.log(temp_array)
-
-            nr_nodos=id_array.length
-            
-            nodos_mostrar=[];
-
-            for (let index = 1; index <= nr_nodos; index++) {
-      
-              nodos_mostrar.push(index)
+            try {
+              const data = await dbclient.send(new ScanCommand(params));
+              data.Items.forEach(function (element, index, array) {
+                console.log(element.DEV_ID.N);
+                id_array.push(element.DEV_ID.N)
+                smoke_array.push(element.Smoke_Rate.N)
+                temp_array.push(element.TempHum_Rate.N)
+                //nr_resultados=nr_resultados+1;
+                return data;
+              });
+            } catch (err) {
+              console.log("Error", err);
             }
+            
+            id_array.sort();
 
-            sala_anterior=sala
+            var reference_object = {};
+            for (var i = 0; i < id_array.length; i++) {
+                reference_object[id_array[i]] = i;
+            }
+          
+            smoke_array.sort(function(a, b) {
+              return reference_object[a] - reference_object[b];
+            });
+            temp_array.sort(function(a, b) {
+              return reference_object[a] - reference_object[b];
+            });
+          
+            console.log(id_array)
+            console.log(smoke_array)
+            console.log(temp_array)
+
+              nr_nodos=id_array.length
+
+              
+              
+              nodos_mostrar=[];
+
+              for (let index = 1; index <= nr_nodos; index++) {
+        
+                nodos_mostrar.push(index)
+              }
+        
+              sala_anterior=sala
+
           }
               
 
@@ -427,14 +486,20 @@ app.get('/', (req, res) => {
 
             //função que trata dos dados após clicarmos no botão de enviar
             function validateFormOnSubmit(theForm) {
+
+                var titulo=document.getElementById('titulo').innerHTML;
+    
+                var titulo_sep = titulo.split(" ");
+    
+                i=titulo_sep[1];
         
                 var sala = theForm.sala.value;
                 var  freq_tem= theForm.freq_tem.value;
                 var freq_fum = theForm.freq_fum.value;
                 var dev_id = theForm.dev_id.value;
-                console.log(dev_id)
-                if (sala==3) {
-        
+                console.log(dev_id)                
+
+                if(i!=sala){
                     var today = new Date();
         
                     var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
@@ -446,14 +511,16 @@ app.get('/', (req, res) => {
                     var list = document.getElementById('lista');
                     var entry = document.createElement('li');
                     entry.appendChild(document.createTextNode(dateTime));
-                    entry.appendChild(document.createTextNode('Foi realizada a mudança para a sala '));
+                    entry.appendChild(document.createTextNode('Foi realizada a mudança de '+dev_id+' para a sala '));
                     entry.appendChild(document.createTextNode(sala));
                     list.appendChild(entry);
 
-                    get+='&message_number='+dateTime+'Foi realizada a mudança para a sala '+sala
+                    get+='&message_number='+dateTime+'Foi realizada a mudança de '+dev_id+ ' para a sala '+sala+'&pedido_update_id='+dev_id+'&freq_tem='+freq_tem+'&freq_fum='+freq_fum+'&sala_destino='+sala
+
+                    location.replace('http://localhost:8080/?sala='+i+''+get+''+mostrar)
+                    console.log("correu location replace")
                 }
-        
-                console.log(time)
+               // console.log(time)
                 return false;
             }
 
@@ -656,9 +723,11 @@ app.get('/', (req, res) => {
       `)
     }
     contagem_de_nodos();
+
+  }
+  update_parametros();
+  //---antes
   })
-
-
 
 }
 contagem_de_salas();

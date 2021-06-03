@@ -30,37 +30,41 @@ const REGION = "eu-west-1"; //e.g. "us-east-1"
 const ddbClient = new DynamoDBClient({ region: REGION });
 
 // Set the parameters
-const params = {
-  ExpressionAttributeNames: {
-   "#AT": "Subtitle", 
-   "#Y": "Title"
-  }, 
-  ExpressionAttributeValues: {
-   ":t": {
-     S: "Louder Than Ever"
-    }, 
-   ":y": {
-     N: "2015"
-    }
-  }, 
-  Key: {
-   "Season": {
-     N: "1"
-    }, 
-   "Episode": {
-     N: "2"
-    }
-  }, 
-  ReturnValues: "ALL_NEW", 
-  TableName: "EPISODES_TABLE", 
-  UpdateExpression: "SET #Y = :y, #AT = :t"
- };
+
 
 const run = async () => {
   try {
+
+    const params = {
+        ExpressionAttributeNames: {
+        "#SR": "Smoke_Rate",
+        "#TR": "TempHum_Rate",
+        "#RI": "ROOM_ID",
+      
+        }, 
+        ExpressionAttributeValues: {
+        ":t": {
+          N: "5"
+          }, 
+        ":y": {
+          N: "100"
+          },
+          ":z": {
+            N: "2"
+          },
+        }, 
+        Key: {
+        "DEV_ID": {
+          N: "1004"
+          }
+        }, 
+        ReturnValues: "ALL_NEW", 
+        TableName: "configuration", 
+        UpdateExpression: "SET #SR = :y, #TR = :t, #RI = :z"
+      };
     console.log(params)
     const data = await ddbClient.send(new UpdateItemCommand(params));
-    console.log("Success - item added or updated", data.Attributes.Episode.N);
+    console.log("Success - item added or updated", data);
     return data;
   } catch (err) {
     console.log("Error", err);

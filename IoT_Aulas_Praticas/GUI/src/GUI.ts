@@ -18,6 +18,7 @@ var string_mensagens=''
 var ac_ativado=1;
 var atualizar_ac=1;
 var IDM=0;
+var nr_salas=1;
 
 
 var nodos_mostrar=[];
@@ -50,33 +51,6 @@ const dbclient = new DynamoDBClient({ region: REGION });
     //console.log("x")
   }, 5000);
   
-  async function contagem_de_salas() {
-    
-    var nr_salas=0;
-    const params = {
-      // Specify which items in the results are returned.
-      FilterExpression: "ROOM_ID > :s ",
-      // Define the expression attribute value, which are substitutes for the values you want to compare.
-      ExpressionAttributeValues: {
-        
-        ":s": { N: "0" },
-        
-      },
-      // Set the projection expression, which the the attributes that you want.
-      ProjectionExpression: "ROOM_ID, AC",
-      TableName: "ar_condicionado_sala",
-    };
-    try {
-      const data = await dbclient.send(new ScanCommand(params));
-      data.Items.forEach(function (element, index, array) {
-        //console.log(element.ROOM_ID.N + " (" + element.AC.N + ")");
-        nr_salas=nr_salas+1;
-
-        return data;
-      });
-    } catch (err) {
-      console.log("Error", err);
-    }
 //    console.log(nr_salas)
 
 
@@ -101,11 +75,10 @@ function mostrar_remover(i){
   }
 }
 
-function salas(){
+function salas(nr_sala){
     
     var text_salas=''
-
-    for (let i = 1; i <= nr_salas; i++) {
+    for (let i = 1; i <= nr_sala; i++) {
         
         text_salas=text_salas+'<a onclick="mudar_sala('+i+')">Sala '+(i)+'</a> '
         
@@ -128,13 +101,23 @@ function nodos(){
       if (nodos_mostrar.includes(i+1)){
         print2='mostrar'
         print1='lista_dados'
-        print11='grey_server.png'
+        if (smoke_show[i]==0) {
+          print11='grey_server.png'
+        }
+        else{
+          print11='red_server.png'
+        }       
         print21='def_white.png'
-      }
+        }
       else{
         print2='lista_def'
         print1='mostrar'
-        print11='white_server.png'
+        if (smoke_show[i]==0) {
+          print11='white_server.png'
+        }
+        else{
+          print11='red_server.png'
+        }  
         print21='def_grey.png'
       }
           
@@ -179,10 +162,10 @@ function titulo(){
 
     var x=''
     if (Number.isNaN(sala)) {
-        x+='<h2 id="titulo">Sala 1 :</h2>'
+        x+='<h2 style="color: #eee;" id="titulo">Sala 1 :</h2>'
     }
     else{
-        x+='<h2 id="titulo">Sala '+sala+ ' :</h2>'
+        x+='<h2 style="color: #eee;" id="titulo">Sala '+sala+ ' :</h2>'
     }
     
     return(x)
@@ -209,10 +192,10 @@ function estado_cond(){
   var x=''
 
   if (ac_ativado==1) {
-     x+='<button onclick="mudar_ac()" id="ar_condicionado" style="margin-left: 21%; padding: 10px;">Desactivar Ar Condicionado</button></span>'
+     x+='<button onclick="mudar_ac()" id="ar_condicionado" style="margin-left: 50%; padding: 10px;">Desactivar Ar Condicionado</button></span>'
   }
   else{
-      x+='<button onclick="mudar_ac()" id="ar_condicionado" style="margin-left: 21%; padding: 10px;">Ativar Ar Condicionado</button></span>'
+      x+='<button onclick="mudar_ac()" id="ar_condicionado" style="margin-left: 50%; padding: 10px;">Ativar Ar Condicionado</button></span>'
   }
   return(x)
 }
@@ -276,7 +259,34 @@ app.get('/', (req, res) => {
     var dev_id=req.query.pedido_update_id;
 
     var mudar_ac = req.query.mudar_cond
+
+    async function contagem_de_salas() {
     
+      nr_salas=0;
+      const params = {
+        // Specify which items in the results are returned.
+        FilterExpression: "ROOM_ID > :s ",
+        // Define the expression attribute value, which are substitutes for the values you want to compare.
+        ExpressionAttributeValues: {
+          
+          ":s": { N: "0" },
+          
+        },
+        // Set the projection expression, which the the attributes that you want.
+        ProjectionExpression: "ROOM_ID, AC",
+        TableName: "ar_condicionado_sala",
+      };
+      try {
+        const data = await dbclient.send(new ScanCommand(params));
+        data.Items.forEach(function (element, index, array) {
+          //console.log(element.ROOM_ID.N + " (" + element.AC.N + ")");
+          nr_salas=nr_salas+1;
+          
+          return data;
+        });
+      } catch (err) {
+        console.log("Error", err);
+      }
 
     async function update_parametros(){
         
@@ -486,7 +496,7 @@ app.get('/', (req, res) => {
               
             },
             // Set the projection expression, which the the attributes that you want.
-            ProjectionExpression: " Tmestamp ,DEV_ID , Temper ,Hum, Smoke, IDM ",
+            ProjectionExpression: " Tmestamp ,DEV_ID , Temper ,Hum, Smoke ",
             TableName: "dados_sensores",
           };
 
@@ -504,7 +514,7 @@ app.get('/', (req, res) => {
                 temp_array.push(element.Temper.N)
               }
 
-              IDM=element.IDM.N
+              
 
 
             });
@@ -526,7 +536,7 @@ app.get('/', (req, res) => {
                 ":s": { N: ""+sala+"" },
           
               },
-              ProjectionExpression: "ROOM_ID, AC",
+              ProjectionExpression: "ROOM_ID, AC, IDM",
               TableName: "ar_condicionado_sala",
             };
     
@@ -535,13 +545,14 @@ app.get('/', (req, res) => {
               results.Items.forEach(function (element, index, array) {
                 
                 ac_ativado=element.AC.N
+                IDM=element.IDM.N
                 
               });
         
             } catch (err) {
               console.error(err);
             }
-            atualizar_ac=0;
+            //atualizar_ac=0;
 
           }
 //-----------------------------------------------------------------------------------------------------//
@@ -678,6 +689,95 @@ app.get('/', (req, res) => {
         .danger{
             color: red;
         }
+        /*------------------------------progress bar stuff--------------------------*/
+        .meter {
+          box-sizing: content-box;
+          height: 20px; /* Can be anything */
+          width: 40%;
+          position: relative;
+          margin: -1.5% 0 20px 0; /* Just for demo spacing */
+          background: #555;
+          border-radius: 25px;
+          padding: 10px;
+          box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.3);
+        }
+        .meter > span {
+          display: block;
+          height: 100%;
+          border-top-right-radius: 8px;
+          border-bottom-right-radius: 8px;
+          border-top-left-radius: 20px;
+          border-bottom-left-radius: 20px;
+          background-color: rgb(43, 194, 83);
+          background-image: linear-gradient(
+            center bottom,
+            rgb(43, 194, 83) 37%,
+            rgb(84, 240, 84) 69%
+          );
+          box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3),
+            inset 0 -2px 6px rgba(0, 0, 0, 0.4);
+          position: relative;
+          overflow: hidden;
+        }
+        .meter > span:after,
+        .animate > span > span {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          bottom: 0;
+          right: 0;
+          background-image: linear-gradient(
+            -45deg,
+            rgba(255, 255, 255, 0.2) 25%,
+            transparent 25%,
+            transparent 50%,
+            rgba(255, 255, 255, 0.2) 50%,
+            rgba(255, 255, 255, 0.2) 75%,
+            transparent 75%,
+            transparent
+          );
+          z-index: 1;
+          background-size: 50px 50px;
+          animation: move 2s linear infinite;
+          border-top-right-radius: 8px;
+          border-bottom-right-radius: 8px;
+          border-top-left-radius: 20px;
+          border-bottom-left-radius: 20px;
+          overflow: hidden;
+        }
+
+        .animate > span:after {
+          display: none;
+        }
+
+        @keyframes move {
+          0% {
+            background-position: 0 0;
+          }
+          100% {
+            background-position: 50px 50px;
+          }
+        }
+
+        .orange > span {
+          background-image: linear-gradient(#f1a165, #f36d0a);
+        }
+
+        .red > span {
+          background-image: linear-gradient(#f0a3a3, #f42323);
+        }
+
+        .nostripes > span > span,
+        .nostripes > span::after {
+          background-image: none;
+        }
+
+
+        body {
+          background: #333;
+          font-family: system-ui, sans-serif;
+        }
         </style>
 
         <script type="text/javascript">
@@ -747,15 +847,18 @@ app.get('/', (req, res) => {
         <!---------------------------MENU LATERAL----------------------------->
         
         <div id="menu_lateral" class="sidenav">
-        `+salas()+`
+        `+salas(nr_salas)+`
         </div>
         
         <div class="main">
         
             <!---------------------------PARTE SUPERIOR----------------------------->
             <header>
-                  `+titulo()+`
-                  <span>Indice de Manutenção: `+IDM+`%
+                  `+titulo()+`<p style="color: #eee;">Indice de manutenção: `+IDM+`%</p>
+                  <span>
+                  <div class="meter red">
+                    <span style="width: `+IDM+`%"></span>				
+                  </div>
                   `+estado_cond()+`
             </header>
         
@@ -784,7 +887,18 @@ app.get('/', (req, res) => {
             
         //mostrar ou não a interface de mostragem dos dados
             function mudar_dados(i){
-                document.getElementById('dados'+i).src="images/grey_server.png"
+
+
+                if(document.getElementById('dados'+i).src.indexOf("images/white_server.png") != -1){
+                  document.getElementById('dados'+i).src="images/grey_server.png"
+                }
+                else if(document.getElementById('dados'+i).src.indexOf("images/grey_server.png") != -1){
+                  document.getElementById('dados'+i).src="images/grey_server.png"
+                }
+                else{
+                  document.getElementById('dados'+i).src="images/red_server.png"
+                }
+
                 document.getElementById('def'+i).src="images/def_white.png"
         
                 document.getElementById('lista_dados'+i).classList.remove('mostrar');
@@ -798,9 +912,17 @@ app.get('/', (req, res) => {
 
             //mostrar ou não a interface de mudança de defenições
             function mudar_def(i){
-                document.getElementById('dados'+i).src="images/white_server.png"
+
+                if(document.getElementById('dados'+i).src.indexOf("images/grey_server.png") != -1){
+                  document.getElementById('dados'+i).src="images/white_server.png"                
+                }
+                else if(document.getElementById('dados'+i).src.indexOf("images/white_server.png") != -1){
+                  document.getElementById('dados'+i).src="images/white_server.png"
+                }
+                else{
+                  document.getElementById('dados'+i).src="images/red_server.png"
+                }
                 document.getElementById('def'+i).src="images/def_grey.png"
-        
                 document.getElementById('lista_dados'+i).classList.remove('lista_dados');
                 document.getElementById('lista_dados'+i).classList.add('mostrar');
                 document.getElementById('lista_def'+i).classList.remove('mostrar');
@@ -937,10 +1059,11 @@ app.get('/', (req, res) => {
   }
   update_parametros();
   //---antes
+  }
+  contagem_de_salas();
   })
 
-}
-contagem_de_salas();
+
 
 
 app.listen(port,() => {

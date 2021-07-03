@@ -26,7 +26,7 @@ var id_array=[];
 var smoke_array=[];
 var temp_array=[];
 var hum_array=[]
-var temp_array=[]
+var temps_array=[]
 var smokes_array=[]
 var ids_array=[]
 var time_stamps=[]
@@ -78,13 +78,10 @@ function mostrar_remover(i){
 }
 
 function salas(room_array,idm_array){
-    console.log(room_array)
-    console.log(idm_array)
     var text_salas=''
     for (let i = 1; i <= room_array.length; i++) {
       if(parseFloat(idm_array[room_array.indexOf(''+i+'')])>=90){
-        console.log("entrou")
-        text_salas=text_salas+'<j " onclick="mudar_sala('+i+')">Sala '+(i)+'</j> '
+                text_salas=text_salas+'<j " onclick="mudar_sala('+i+')">Sala '+(i)+'</j> '
       } 
       else{
         text_salas=text_salas+'<k " onclick="mudar_sala('+i+')">Sala '+(i)+'</k> '
@@ -163,7 +160,7 @@ function nodos(){
 
 function room_register(){
 
-    console.log("pedido de mudança")
+    //console.log("pedido de mudança")
 }
 
 function titulo(){
@@ -234,8 +231,8 @@ app.get('/', (req, res) => {
     }
     }
 
-    console.log("tipo_dados",tipo_dados)
-    console.log("dados_sel",dados_sel)
+    //console.log("tipo_dados",tipo_dados)
+    //console.log("dados_sel",dados_sel)
 
     if (tipo_dados === 'undefined') {
       
@@ -271,8 +268,6 @@ app.get('/', (req, res) => {
     async function contagem_de_salas() {
     
       nr_salas=0;
-      IDM_array=[]
-      Room_array=[]
       const params = {
         // Specify which items in the results are returned.
         FilterExpression: "ROOM_ID > :s ",
@@ -288,9 +283,12 @@ app.get('/', (req, res) => {
       };
       try {
         const data = await dbclient.send(new ScanCommand(params));
+        IDM_array=[]
+        Room_array=[]
         data.Items.forEach(function (element, index, array) {
           //console.log(element.ROOM_ID.N + " (" + element.AC.N + ")");
           nr_salas=nr_salas+1;
+          
           Room_array.push(element.ROOM_ID.N)
           IDM_array.push(element.IDM.N)
           return data;
@@ -302,7 +300,7 @@ app.get('/', (req, res) => {
     async function update_parametros(){
         
     if(dev_id){
-      console.log("voltou a entrar")
+      //console.log("voltou a entrar")
       var smoke_rate=req.query.freq_fum
       var temp_rate=req.query.freq_tem
       var sala_destino=req.query.sala_destino
@@ -368,7 +366,7 @@ app.get('/', (req, res) => {
           TableName: "ar_condicionado_sala", 
           UpdateExpression: "SET  #AC = :t"
         };
-      console.log(params)
+      //console.log(params)
       const data = await dbclient.send(new UpdateItemCommand(params));
       //console.log("Success - item added or updated", data);
       //return data;
@@ -390,7 +388,7 @@ app.get('/', (req, res) => {
         async function contagem_de_nodos() {
 
           hum_array=[]
-          temp_array=[]
+          temps_array=[]
           smokes_array=[]
           ids_array=[]
           time_stamps=[]
@@ -522,7 +520,7 @@ app.get('/', (req, res) => {
                 hum_array.push(element.Hum.N)
                 smokes_array.push(element.Smoke.N)
                 time_stamps.push(element.Tmestamp.N)
-                temp_array.push(element.Temper.N)
+                temps_array.push(element.Temper.N)
               }
 
               
@@ -532,11 +530,12 @@ app.get('/', (req, res) => {
           } catch (err) {
             console.log("Error", err);
           }
-
+          console.log("pre processing")
           console.log(time_stamps)
           console.log(ids_array)
-          console.log(hum_array)
           console.log(smokes_array)
+          console.log(hum_array)
+          console.log(temps_array)
 
           if(atualizar_ac==1){
 
@@ -593,11 +592,11 @@ app.get('/', (req, res) => {
           for (let index = 0; index < index_array.length; index++) {
         
             smoke_show.push(smokes_array[index_array[index]])
-            temp_show.push(temp_array[index_array[index]])
+            temp_show.push(temps_array[index_array[index]])
             hum_show.push(hum_array[index_array[index]])
             
           }
-        
+          console.log("pos processing")
           console.log(smoke_show)
           console.log(hum_show)
           console.log(temp_show)
@@ -926,6 +925,10 @@ app.get('/', (req, res) => {
                 document.getElementById('lista_def'+i).classList.add('mostrar');
 
                 mostrar+='&mostrar='+i+'sim'
+
+                clearInterval(intervalId);
+                intervalId = setInterval(reload, 2000);
+                console.log("reload to timer")
                 
             }
 
@@ -948,6 +951,10 @@ app.get('/', (req, res) => {
                 document.getElementById('lista_def'+i).classList.add('lista_def');
 
                 mostrar+='&mostrar='+i+'nao'
+
+                clearInterval(intervalId);
+                intervalId = setInterval(reload, 2000);
+                console.log("reload to timer")
             }
             
             //função que atua quando procuramos mudar o valor do ar condicionado colocando nas menssagens laterais

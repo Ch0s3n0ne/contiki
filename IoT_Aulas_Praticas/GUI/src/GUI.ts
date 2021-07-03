@@ -36,6 +36,8 @@ var index_array=[]
 var smoke_show=[]
 var temp_show=[]
 var hum_show=[]
+var IDM_array=[]
+var Room_array=[]
 
 
 
@@ -75,12 +77,18 @@ function mostrar_remover(i){
   }
 }
 
-function salas(nr_sala){
-    
+function salas(room_array,idm_array){
+    console.log(room_array)
+    console.log(idm_array)
     var text_salas=''
-    for (let i = 1; i <= nr_sala; i++) {
-        
-        text_salas=text_salas+'<a onclick="mudar_sala('+i+')">Sala '+(i)+'</a> '
+    for (let i = 1; i <= room_array.length; i++) {
+      if(parseFloat(idm_array[room_array.indexOf(''+i+'')])>=90){
+        console.log("entrou")
+        text_salas=text_salas+'<j " onclick="mudar_sala('+i+')">Sala '+(i)+'</j> '
+      } 
+      else{
+        text_salas=text_salas+'<k " onclick="mudar_sala('+i+')">Sala '+(i)+'</k> '
+      }
         
     }
 return (text_salas)  
@@ -263,6 +271,8 @@ app.get('/', (req, res) => {
     async function contagem_de_salas() {
     
       nr_salas=0;
+      IDM_array=[]
+      Room_array=[]
       const params = {
         // Specify which items in the results are returned.
         FilterExpression: "ROOM_ID > :s ",
@@ -273,7 +283,7 @@ app.get('/', (req, res) => {
           
         },
         // Set the projection expression, which the the attributes that you want.
-        ProjectionExpression: "ROOM_ID, AC",
+        ProjectionExpression: "ROOM_ID, AC, IDM",
         TableName: "ar_condicionado_sala",
       };
       try {
@@ -281,7 +291,8 @@ app.get('/', (req, res) => {
         data.Items.forEach(function (element, index, array) {
           //console.log(element.ROOM_ID.N + " (" + element.AC.N + ")");
           nr_salas=nr_salas+1;
-          
+          Room_array.push(element.ROOM_ID.N)
+          IDM_array.push(element.IDM.N)
           return data;
         });
       } catch (err) {
@@ -616,7 +627,7 @@ app.get('/', (req, res) => {
           padding-top: 20px;
         }
         
-        .sidenav a {
+        .sidenav k {
           padding: 6px 8px 6px 16px;
           text-decoration: none;
           font-size: 25px;
@@ -624,7 +635,18 @@ app.get('/', (req, res) => {
           display: block;
         }
         
-        .sidenav a:hover {
+        .sidenav k:hover {
+          color: #f1f1f1;
+        }
+        .sidenav j {
+          padding: 6px 8px 6px 16px;
+          text-decoration: none;
+          font-size: 25px;
+          color: red;
+          display: block;
+        }
+        
+        .sidenav j:hover {
           color: #f1f1f1;
         }
         
@@ -685,9 +707,6 @@ app.get('/', (req, res) => {
         }
         .mostrar{
             display: none;
-        }
-        .danger{
-            color: red;
         }
         /*------------------------------progress bar stuff--------------------------*/
         .meter {
@@ -847,7 +866,7 @@ app.get('/', (req, res) => {
         <!---------------------------MENU LATERAL----------------------------->
         
         <div id="menu_lateral" class="sidenav">
-        `+salas(nr_salas)+`
+        `+salas(Room_array,IDM_array)+`
         </div>
         
         <div class="main">

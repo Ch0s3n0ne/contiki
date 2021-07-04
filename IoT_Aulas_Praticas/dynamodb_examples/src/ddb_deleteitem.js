@@ -24,7 +24,7 @@ import { DeleteItemCommand } from "@aws-sdk/client-dynamodb";
 import { ddbClient } from "./libs/ddbClient.js";
 
 // Set the AWS Region
-const REGION = "REGION"; //e.g. "us-east-1"
+const REGION = "eu-west-1"; //e.g. "us-east-1"
 
 // Set the parameters
 var params = {

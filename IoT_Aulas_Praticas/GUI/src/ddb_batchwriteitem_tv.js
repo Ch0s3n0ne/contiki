@@ -28,225 +28,48 @@ const ddbClient = new DynamoDBClient({ region: REGION });
 
 const params = {
   RequestItems: {
-    dados_sensores: [
-    {
-        PutRequest: {
-            Item: {
-                DEV_ID: { N: "1001" },
-                Tmestamp: { N: "1622470346.63867473602294921875" },
-                Dev_Mean_Hum: { N: "50" },
-                Dev_Mean_Temp: { N: "20" },
-                Hum: { N: "50" },
-                IDM: { N: "10" },
-                ROOM_ID: { N: "1" },
-                Room_Mean_Hum: { N: "50" },
-                Room_Mean_Temp: { N: "20" },
-                Smoke: { N: "0" },
-                Temper: { N: "20" },
-            }
-        }
-    },
-    {
-        PutRequest: {
-            Item: {
-                DEV_ID: { N: "1001" },
-                Tmestamp: { N: "1622470672.8527698516845703125" },
-                Dev_Mean_Hum: { N: "40" },
-                Dev_Mean_Temp: { N: "25" },
-                Hum: { N: "30" },
-                IDM: { N: "10" },
-                ROOM_ID: { N: "1" },
-                Room_Mean_Hum: { N: "46" },
-                Room_Mean_Temp: { N: "22" },
-                Smoke: { N: "0" },
-                Temper: { N: "30" },
-            }
-        }
-    },
-    {
-      PutRequest: {
-          Item: {
-              DEV_ID: { N: "1002" },
-              Tmestamp: { N: "1622305926.106422901153564453125" },
-              Dev_Mean_Hum: { N: "53" },
-              Dev_Mean_Temp: { N: "22.3" },
-              Hum: { N: "53" },
-              IDM: { N: "10" },
-              ROOM_ID: { N: "51.5" },
-              Room_Mean_Hum: { N: "1" },
-              Room_Mean_Temp: { N: "1" },
-              Smoke: { N: "1" },
-              Temper: { N: "1" },
-          }
-      }
-  },
+    configuration: [
   {
       PutRequest: {
           Item: {
-              DEV_ID: { N: "1002" },
-              Tmestamp: { N: "1066515454601" },
-              Dev_Mean_Hum: { N: "0" },
-              Dev_Mean_Temp: { N: "1" },
-              Hum: { N: "300" },
-              IDM: { N: "1" },
+              DEV_ID: { N: "1001" },
               ROOM_ID: { N: "1" },
-              Room_Mean_Hum: { N: "1" },
-              Room_Mean_Temp: { N: "1" },
-              Smoke: { N: "1" },
-              Temper: { N: "1" },
+              ReadWrite: { N: "0" },
+              Smoke_Rate: { N: "1" },
+              TempHum_Rate: { N: "300" },
           }
       }
   },
   {
       PutRequest: {
           Item: {
-              DEV_ID: { N: "1003" },
-              Tmestamp: { N: "100102252154051" },
-              Dev_Mean_Hum: { N: "0" },
-              Dev_Mean_Temp: { N: "1" },
-              Hum: { N: "300" },
-              IDM: { N: "1" },
-              ROOM_ID: { N: "1" },
-              Room_Mean_Hum: { N: "1" },
-              Room_Mean_Temp: { N: "1" },
-              Smoke: { N: "1" },
-              Temper: { N: "1" },
+            DEV_ID: { N: "1002" },
+            ROOM_ID: { N: "1" },
+            ReadWrite: { N: "0" },
+            Smoke_Rate: { N: "1" },
+            TempHum_Rate: { N: "300" },
           }
       }
   },
   {
       PutRequest: {
           Item: {
-              DEV_ID: { N: "1003" },
-              Tmestamp: { N: "1065440277401" },
-              Dev_Mean_Hum: { N: "0" },
-              Dev_Mean_Temp: { N: "1" },
-              Hum: { N: "300" },
-              IDM: { N: "1" },
-              ROOM_ID: { N: "1" },
-              Room_Mean_Hum: { N: "1" },
-              Room_Mean_Temp: { N: "1" },
-              Smoke: { N: "1" },
-              Temper: { N: "1" },
+            DEV_ID: { N: "1003" },
+            ROOM_ID: { N: "2" },
+            ReadWrite: { N: "0" },
+            Smoke_Rate: { N: "1" },
+            TempHum_Rate: { N: "300" },
           }
       }
   },
   {
       PutRequest: {
           Item: {
-              DEV_ID: { N: "1003" },
-              Tmestamp: { N: "1050465458701" },
-              Dev_Mean_Hum: { N: "0" },
-              Dev_Mean_Temp: { N: "1" },
-              Hum: { N: "300" },
-              IDM: { N: "1" },
-              ROOM_ID: { N: "1" },
-              Room_Mean_Hum: { N: "1" },
-              Room_Mean_Temp: { N: "1" },
-              Smoke: { N: "1" },
-              Temper: { N: "1" },
-          }
-      }
-  },
-  {
-      PutRequest: {
-          Item: {
-              DEV_ID: { N: "1003" },
-              Tmestamp: { N: "100057840605451" },
-              Dev_Mean_Hum: { N: "0" },
-              Dev_Mean_Temp: { N: "1" },
-              Hum: { N: "300" },
-              IDM: { N: "1" },
-              ROOM_ID: { N: "1" },
-              Room_Mean_Hum: { N: "1" },
-              Room_Mean_Temp: { N: "1" },
-              Smoke: { N: "1" },
-              Temper: { N: "1" },
-          }
-      }
-  },
-  {
-      PutRequest: {
-          Item: {
-              DEV_ID: { N: "1003" },
-              Tmestamp: { N: "1050785465001" },
-              Dev_Mean_Hum: { N: "0" },
-              Dev_Mean_Temp: { N: "1" },
-              Hum: { N: "300" },
-              IDM: { N: "1" },
-              ROOM_ID: { N: "1" },
-              Room_Mean_Hum: { N: "1" },
-              Room_Mean_Temp: { N: "1" },
-              Smoke: { N: "1" },
-              Temper: { N: "1" },
-          }
-      }
-  },
-  {
-      PutRequest: {
-          Item: {
-              DEV_ID: { N: "1004" },
-              Tmestamp: { N: "107705406501" },
-              Dev_Mean_Hum: { N: "0" },
-              Dev_Mean_Temp: { N: "1" },
-              Hum: { N: "300" },
-              IDM: { N: "1" },
-              ROOM_ID: { N: "2" },
-              Room_Mean_Hum: { N: "1" },
-              Room_Mean_Temp: { N: "1" },
-              Smoke: { N: "1" },
-              Temper: { N: "1" },
-          }
-      }
-  },
-  {
-      PutRequest: {
-          Item: {
-              DEV_ID: { N: "1004" },
-              Tmestamp: { N: "1504564094004" },
-              Dev_Mean_Hum: { N: "0" },
-              Dev_Mean_Temp: { N: "1" },
-              Hum: { N: "300" },
-              IDM: { N: "1" },
-              ROOM_ID: { N: "2" },
-              Room_Mean_Hum: { N: "1" },
-              Room_Mean_Temp: { N: "1" },
-              Smoke: { N: "0" },
-              Temper: { N: "1" },
-          }
-      }
-  },
-  {
-      PutRequest: {
-          Item: {
-              DEV_ID: { N: "1005" },
-              Tmestamp: { N: "100056045478641" },
-              Dev_Mean_Hum: { N: "0" },
-              Dev_Mean_Temp: { N: "1" },
-              Hum: { N: "300" },
-              IDM: { N: "1" },
-              ROOM_ID: { N: "2" },
-              Room_Mean_Hum: { N: "1" },
-              Room_Mean_Temp: { N: "1" },
-              Smoke: { N: "1" },
-              Temper: { N: "1" },
-          }
-      }
-  },
-  {
-      PutRequest: {
-          Item: {
-              DEV_ID: { N: "1006" },
-              Tmestamp: { N: "19900189844984" },
-              Dev_Mean_Hum: { N: "0" },
-              Dev_Mean_Temp: { N: "1" },
-              Hum: { N: "300" },
-              IDM: { N: "1" },
-              ROOM_ID: { N: "2" },
-              Room_Mean_Hum: { N: "1" },
-              Room_Mean_Temp: { N: "1" },
-              Smoke: { N: "1" },
-              Temper: { N: "1" },
+            DEV_ID: { N: "1004" },
+            ROOM_ID: { N: "3" },
+            ReadWrite: { N: "0" },
+            Smoke_Rate: { N: "1" },
+            TempHum_Rate: { N: "300" },
           }
       }
   },

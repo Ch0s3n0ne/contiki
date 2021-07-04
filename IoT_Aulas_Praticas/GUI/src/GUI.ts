@@ -1,7 +1,8 @@
 import express = require('express');
 import { textSpanEnd } from 'typescript';
+import ts = require('typescript');
 
-const { DynamoDBClient, ScanCommand, QueryCommand , UpdateItemCommand} = require("@aws-sdk/client-dynamodb");
+const { DynamoDBClient, ScanCommand, QueryCommand , UpdateItemCommand, DeleteItemCommand} = require("@aws-sdk/client-dynamodb");
 
 // Set the AWS Region
 const REGION = "eu-west-1"; //e.g. "us-east-1"
@@ -39,6 +40,7 @@ var hum_show=[]
 var IDM_array=[]
 var Room_array=[]
 var show_room_array=[]
+var date_show=[]
 
 
 
@@ -74,14 +76,14 @@ function mostrar_adicionar(i){
 function mostrar_remover(i){
   if (nodos_mostrar.includes(i)) {
     nodos_mostrar.splice(nodos_mostrar.indexOf(i),1)
-    console.log("removeu")
+    //console.log("removeu")
   }
 }
 
 function salas(room_array,idm_array,show_room){
     var text_salas=''
-    console.log(room_array)
-    console.log(show_room)
+    //console.log(room_array)
+    //console.log(show_room)
     for (let i = 1; i <= room_array.length; i++) {
       
       if(show_room[room_array.indexOf(''+i+'')]=='1'){
@@ -139,11 +141,12 @@ function nodos(){
       x+=        '<a class="def" onclick="mudar_def('+(i+1)+')"><img id="def'+(i+1)+'" src="images/'+print21+'"></a>'
       x+=    '</li>'
       x+=    '<li>'
-      x+=    '<ul class="'+print1+'" id="lista_dados'+(i+1)+'" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 300px">'
+      x+=    '<ul class="'+print1+'" id="lista_dados'+(i+1)+'" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 400px">'
       x+=        '<li>ID: '+id_array[i]+'</li>'
       x+=        '<li>Temperatura: '+temp_show[i]+'</li>'
       x+=        '<li>Humidade: '+hum_show[i]+'</li>'
       x+=        '<li>Fumo: '+smoke_show[i]+'</li>'
+      x+=        '<li>'+date_show[i]+'</li>'
       x+=    '</ul> '
       x+=    '<ul class="'+print2+'" id="lista_def'+(i+1)+'" style="border-style: solid; margin-left: 98px; margin-top: -120px; width: 400px">'
       x+=        '<form onsubmit="return validateFormOnSubmit(this);" style="margin-left: 5px;">'
@@ -154,6 +157,8 @@ function nodos(){
       x+=           '<input onclick="hold()"  type="number"  min="1" step="any" id="freq_tem" name="freq_tem" value="'+temp_array[i]+'">s<br><br>'
       x+=           '<label for="freq_fum">Tempo de aquisição Fumo:</label><br>'
       x+=           '<input onclick="hold()"  type="number"  min="1" step="any" id="freq_fum" name="freq_fum" value="'+smoke_array[i]+'">s<br><br>'
+      x+=           '<label for="remover_nodo"> Remover nodo?</label>'
+      x+=           '<input id="'+id_array[i]+'" onclick="hold()" style="margin-left:25px"type="checkbox" id="remover_nodo" name="remover_nodo" value="remover"><br><br>'
       x+=           '<input style=" padding: 5px; float:right;" type="submit" value="Enviar">'
       x+=       '</form>'
       x+=   '</ul>'  
@@ -329,7 +334,35 @@ app.get('/', (req, res) => {
       //console.log("voltou a entrar")
       var smoke_rate=req.query.freq_fum
       var temp_rate=req.query.freq_tem
+      var remove_node=req.query.remove_node
+
+      console.log("remover nodo")
+      console.log(remove_node)
+
       var sala_destino=req.query.sala_destino
+
+      if(remove_node=="remover"){
+        var params = {
+          Key: {
+           "DEV_ID": {
+             N: ""+dev_id+""
+            }, 
+          }, 
+          TableName: "configuration"
+         };
+        
+        const run = async () => {
+          try {
+            const data = await dbclient.send(new DeleteItemCommand(params));
+            //console.log("Success - item deleted", data);
+            //return data;
+          } catch (err) {
+            console.log("Error", err);
+          }
+        };
+        run();
+      }
+      else{
       try {
         
             const params = {
@@ -407,7 +440,7 @@ app.get('/', (req, res) => {
 
         sala_anterior=0
         
-
+      }
     }
     if (mudar_ac) {
 
@@ -457,6 +490,7 @@ app.get('/', (req, res) => {
           smoke_show=[]
           temp_show=[]
           hum_show=[]
+          date_show=[]
 
           console.log("correu função no reload")
 
@@ -496,7 +530,6 @@ app.get('/', (req, res) => {
             } catch (err) {
               console.log("Error", err);
             }
-            
             if(id_array.length==0){
 
               try {
@@ -536,7 +569,7 @@ app.get('/', (req, res) => {
                   break
                 }
               }
-              
+
               const params = {
                 // Specify which items in the results are returned.
                 FilterExpression: "ROOM_ID = :s ",
@@ -606,12 +639,16 @@ app.get('/', (req, res) => {
             smoke_array=new_smoke_array
             temp_array=new_temp_array
           
-          
+            //console.log("pre processing")
             //console.log(id_array)
             //console.log(smoke_array)
             //console.log(temp_array)
+            
+            nr_nodos=id_array.length
 
-              nr_nodos=id_array.length
+            if(sala_anterior!=sala){
+
+              
 
             
               nodos_mostrar=[];
@@ -620,8 +657,9 @@ app.get('/', (req, res) => {
         
                 nodos_mostrar.push(index)
               }
-        
-              //sala_anterior=sala
+              sala_anterior=sala
+            }
+              
               atualizar_ac=1
 
 
@@ -641,7 +679,7 @@ app.get('/', (req, res) => {
             ProjectionExpression: " Tmestamp ,DEV_ID , Temper ,Hum, Smoke ",
             TableName: "dados_sensores",
           };
-
+          
           try {
             const data = await dbclient.send(new ScanCommand(params));
             data.Items.forEach(function (element, index, array) {
@@ -658,17 +696,40 @@ app.get('/', (req, res) => {
 
               
 
-
+          
             });
           } catch (err) {
             console.log("Error", err);
           }
-          //console.log("pre processing")
-          //console.log(time_stamps)
+          console.log("pre processing")
+          console.log(time_stamps)
           //console.log(ids_array)
           //console.log(smokes_array)
           //console.log(hum_array)
           //console.log(temps_array)
+
+          var date_stamps=[]
+          for (let index = 0; index < time_stamps.length; index++) {
+            
+              var date = new Date(time_stamps[index]*1000);
+              
+              date_stamps.push("Date: "+date.getDate()+
+                                "/"+(date.getMonth()+1)+
+                                "/"+date.getFullYear()+
+                                " "+date.getHours()+
+                                ":"+date.getMinutes()+
+                                ":"+date.getSeconds())
+          }
+
+          /*var date = new Date(1625419711.2714403*1000);
+              
+              console.log("Date: "+date.getDate()+
+                                "/"+(date.getMonth()+1)+
+                                "/"+date.getFullYear()+
+                                " "+date.getHours()+
+                                ":"+date.getMinutes()+
+                                ":"+date.getSeconds())*/
+          console.log(date_stamps)
 
           if(atualizar_ac==1){
 
@@ -703,6 +764,7 @@ app.get('/', (req, res) => {
           for (let index1 = 0; index1 < id_array.length; index1++){
 
             timestamp_anterior=0
+            indice=-1
         
             for (let index = 0; index < ids_array.length; index++){
         
@@ -723,10 +785,21 @@ app.get('/', (req, res) => {
           //console.log(index_array)
         
           for (let index = 0; index < index_array.length; index++) {
+
+            if (index_array[index]==-1) {
+              smoke_show.push('undefined')
+              temp_show.push('undefined')
+              hum_show.push('undefined')
+              date_show.push('undefined')
+
+            }else{
+              smoke_show.push(smokes_array[index_array[index]])
+              temp_show.push(temps_array[index_array[index]])
+              hum_show.push(hum_array[index_array[index]])
+              date_show.push(date_stamps[index_array[index]])
+            
+            }
         
-            smoke_show.push(smokes_array[index_array[index]])
-            temp_show.push(temps_array[index_array[index]])
-            hum_show.push(hum_array[index_array[index]])
             
           }
           //console.log("pos processing")
@@ -924,6 +997,25 @@ app.get('/', (req, res) => {
           background-image: none;
         }
 
+        /*---------------------------checkbox settings ---------------*/
+        input[type=checkbox]
+        {
+          /* Double-sized Checkboxes */
+          -ms-transform: scale(2); /* IE */
+          -moz-transform: scale(2); /* FF */
+          -webkit-transform: scale(2); /* Safari and Chrome */
+          -o-transform: scale(2); /* Opera */
+          transform: scale(2);
+          padding: 10px;
+        }
+
+        /* Might want to wrap a span around your checkbox text */
+        .checkboxtext
+        {
+          /* Checkbox text */
+          font-size: 110%;
+          display: inline;
+        }
 
         body {
           background: #333;
@@ -947,16 +1039,18 @@ app.get('/', (req, res) => {
                 var titulo=document.getElementById('titulo').innerHTML;
     
                 var titulo_sep = titulo.split(" ");
-    
+                var remove_value=''
                 i=titulo_sep[1];
         
                 var sala = theForm.sala.value;
                 var  freq_tem= theForm.freq_tem.value;
                 var freq_fum = theForm.freq_fum.value;
                 var dev_id = theForm.dev_id.value;
-                console.log(dev_id)                
+              
+                if(document.getElementById(''+dev_id+'').checked) {
+                  remove_value="remover";
+                } 
 
-                
                 var today = new Date();
     
                 var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
@@ -971,7 +1065,7 @@ app.get('/', (req, res) => {
                 entry.appendChild(document.createTextNode('Foi realizada uma mudança de configuração do '+dev_id+''));
                 list.appendChild(entry);
 
-                get+='&message_number='+dateTime+'Foi realizada uma mudança de configuração do '+dev_id+'&pedido_update_id='+dev_id+'&freq_tem='+freq_tem+'&freq_fum='+freq_fum+'&sala_destino='+sala
+                get+='&message_number='+dateTime+'Foi realizada uma mudança de configuração do '+dev_id+'&pedido_update_id='+dev_id+'&freq_tem='+freq_tem+'&freq_fum='+freq_fum+'&sala_destino='+sala+'&remove_node='+remove_value
 
                 location.replace('http://localhost:8080/?sala='+i+''+get+''+mostrar)
                 console.log("correu location replace")
@@ -1023,7 +1117,7 @@ app.get('/', (req, res) => {
           </nav>
           <!---------------------------PARTE INTERIOR DIREITA----------------------------->
           <article>
-            <h1>Ações Realizadas:</h1>
+            <h1>Registo de acontecimentos:</h1>
                 <ul id="lista" >
                   `+message_list()+`
                 </ul> 
@@ -1060,7 +1154,7 @@ app.get('/', (req, res) => {
                 mostrar+='&mostrar='+i+'sim'
 
                 clearInterval(intervalId);
-                intervalId = setInterval(reload, 2000);
+                intervalId = setInterval(reload, 3000);
                 console.log("reload to timer")
                 
             }
@@ -1086,7 +1180,7 @@ app.get('/', (req, res) => {
                 mostrar+='&mostrar='+i+'nao'
 
                 clearInterval(intervalId);
-                intervalId = setInterval(reload, 2000);
+                intervalId = setInterval(reload, 3000);
                 console.log("reload to timer")
             }
             

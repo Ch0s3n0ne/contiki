@@ -54,7 +54,7 @@ AUTOSTART_PROCESSES(&remote_dht22_process);
 static struct etimer et;
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(remote_dht22_process, ev, data)
-{
+{ 
   int16_t temperature, humidity;
 
   PROCESS_BEGIN();

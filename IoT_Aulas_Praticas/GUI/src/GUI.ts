@@ -16,6 +16,7 @@ var nr_nodos=1;
 var sala=1;
 var sala_anterior=0;
 var string_mensagens=''
+var array_fumo=[]
 var ac_ativado=1;
 var atualizar_ac=1;
 var IDM=0;
@@ -190,10 +191,18 @@ function titulo(){
 }
 
 
-function message_list(){
+function message_list(array_fumo){
 
   var x=''
+  
   var array_mensagens=string_mensagens.split('next->')
+
+    for (let index = 0; index < array_fumo.length; index++) {
+
+      x+='<li style="color:red">'+array_fumo[index]+'</li>'
+      console.log("entrou")
+      console.log(array_fumo)
+    }
 
     for (let index = 1; index < array_mensagens.length; index++) {
 
@@ -604,7 +613,7 @@ app.get('/', (req, res) => {
 
             var old_id_array = id_array.slice();
 
-            id_array.sort()
+            id_array = id_array.sort((a, b) => a - b);
           
             var changes_array=[]
           
@@ -703,10 +712,10 @@ app.get('/', (req, res) => {
           }
           console.log("pre processing")
           console.log(time_stamps)
-          //console.log(ids_array)
-          //console.log(smokes_array)
-          //console.log(hum_array)
-          //console.log(temps_array)
+          console.log(ids_array)
+          console.log(smokes_array)
+          console.log(hum_array)
+          console.log(temps_array)
 
           var date_stamps=[]
           for (let index = 0; index < time_stamps.length; index++) {
@@ -729,7 +738,7 @@ app.get('/', (req, res) => {
                                 " "+date.getHours()+
                                 ":"+date.getMinutes()+
                                 ":"+date.getSeconds())*/
-          console.log(date_stamps)
+          //console.log(date_stamps)
 
           if(atualizar_ac==1){
 
@@ -802,10 +811,66 @@ app.get('/', (req, res) => {
         
             
           }
-          //console.log("pos processing")
+
+          console.log("pos processing")
+          //console.log(date_stamps)
           //console.log(smoke_show)
           //console.log(hum_show)
           //console.log(temp_show)
+
+          array_fumo=[]
+
+          for (let index = 0; index < index_array.length; index++) {
+
+            var id_fumo=''
+            
+            var array_time_index=[]
+            var array_smoke_index=[]
+
+            if (smoke_show[index]=='1') {
+
+              id_fumo=id_array[index]
+
+              for (let index1 = 0; index1 < ids_array.length; index1++) {
+                
+                if(ids_array[index1]==''+id_fumo+''){
+                  array_time_index.push(time_stamps[index1])
+                  array_smoke_index.push(smokes_array[index1])
+                }
+                
+              }
+            console.log(array_time_index)
+            
+            var old_array_time_index=array_time_index.slice()
+
+            array_time_index = array_time_index.sort((a, b) => a - b);
+            
+            
+
+            console.log(array_time_index)
+            var tempo_inicio=0;
+            var i=array_smoke_index.length-1
+
+            while(array_smoke_index[old_array_time_index.indexOf(array_time_index[i])]=='1' || i>=0){
+
+              array_smoke_index[old_array_time_index.indexOf(array_time_index[i])]
+              tempo_inicio=i
+              i=i-1
+
+            }
+
+            var date = new Date(array_time_index[tempo_inicio]*1000);
+              
+              var tempo_fumo=" "+date.getDate()+"/"+(date.getMonth()+1)+"/"+date.getFullYear()+ " "+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()
+            
+            array_fumo.push(tempo_fumo+'⇨começou a registar fumo no nodo: '+id_fumo)
+              
+            }
+            
+          }
+
+          console.log(array_fumo)
+          
 
 
       
@@ -1053,7 +1118,7 @@ app.get('/', (req, res) => {
 
                 var today = new Date();
     
-                var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+                var date = today.getFullYear()+'/'+(today.getMonth()+1)+'/'+today.getDate();
     
                 var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
     
@@ -1119,7 +1184,7 @@ app.get('/', (req, res) => {
           <article>
             <h1>Registo de acontecimentos:</h1>
                 <ul id="lista" >
-                  `+message_list()+`
+                  `+message_list(array_fumo)+`
                 </ul> 
           </article>
         </section>

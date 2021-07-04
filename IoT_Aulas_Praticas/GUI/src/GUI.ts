@@ -5,7 +5,7 @@ const { DynamoDBClient, ScanCommand, QueryCommand , UpdateItemCommand} = require
 
 // Set the AWS Region
 const REGION = "eu-west-1"; //e.g. "us-east-1"
-var tools = require('./function.js');
+//var tools = require('./function.js');
 
 const app=express();
 const port = 8080;
@@ -38,6 +38,7 @@ var temp_show=[]
 var hum_show=[]
 var IDM_array=[]
 var Room_array=[]
+var show_room_array=[]
 
 
 
@@ -77,16 +78,22 @@ function mostrar_remover(i){
   }
 }
 
-function salas(room_array,idm_array){
+function salas(room_array,idm_array,show_room){
     var text_salas=''
+    console.log(room_array)
+    console.log(show_room)
     for (let i = 1; i <= room_array.length; i++) {
-      if(parseFloat(idm_array[room_array.indexOf(''+i+'')])>=90){
-                text_salas=text_salas+'<j " onclick="mudar_sala('+i+')">Sala '+(i)+'</j> '
-      } 
-      else{
-        text_salas=text_salas+'<k " onclick="mudar_sala('+i+')">Sala '+(i)+'</k> '
+      
+      if(show_room[room_array.indexOf(''+i+'')]=='1'){
+
+        if(parseFloat(idm_array[room_array.indexOf(''+i+'')])>=90){
+                  text_salas=text_salas+'<j " onclick="mudar_sala('+i+')">Sala '+(i)+'</j> '
+        } 
+        else{
+          text_salas=text_salas+'<k " onclick="mudar_sala('+i+')">Sala '+(i)+'</k> '
+        }
       }
-        
+       
     }
 return (text_salas)  
 }
@@ -99,8 +106,8 @@ function nodos(){
     var print1=''
     var print11=''
     var print21=''
-    console.log("nodos a mostrar")
-    console.log(nodos_mostrar)
+    //console.log("nodos a mostrar")
+    //console.log(nodos_mostrar)
     for (let i = 0; i < nr_nodos; i++) {
 
       if (nodos_mostrar.includes(i+1)){
@@ -265,6 +272,12 @@ app.get('/', (req, res) => {
 
     var mudar_ac = req.query.mudar_cond
 
+    var conv=req.query.sala+''
+    sala=parseInt(conv)
+    if(!sala){
+      sala=1
+    }
+
     async function contagem_de_salas() {
     
       nr_salas=0;
@@ -278,23 +291,36 @@ app.get('/', (req, res) => {
           
         },
         // Set the projection expression, which the the attributes that you want.
-        ProjectionExpression: "ROOM_ID, AC, IDM",
+        ProjectionExpression: "ROOM_ID, AC, show1,IDM",
         TableName: "ar_condicionado_sala",
       };
       try {
         const data = await dbclient.send(new ScanCommand(params));
         IDM_array=[]
         Room_array=[]
+        show_room_array=[]
         data.Items.forEach(function (element, index, array) {
           //console.log(element.ROOM_ID.N + " (" + element.AC.N + ")");
           nr_salas=nr_salas+1;
           
           Room_array.push(element.ROOM_ID.N)
           IDM_array.push(element.IDM.N)
+          show_room_array.push(element.show1.N)
           return data;
         });
       } catch (err) {
         console.log("Error", err);
+      }
+
+      if(sala==1){
+        if(show_room_array[Room_array.indexOf(''+1+'')]==0){
+          for (let index = 1; index <= Room_array.length; index++) {
+            if (show_room_array[Room_array.indexOf(''+index+'')]=='1') {
+              sala=index
+              break
+            }
+          }
+        }
       }
 
     async function update_parametros(){
@@ -337,11 +363,51 @@ app.get('/', (req, res) => {
           const data = await dbclient.send(new UpdateItemCommand(params));
           //console.log("Success - item added or updated", data);
           //return data;
+
+          
+          
+          if(show_room_array[Room_array.indexOf(''+sala_destino+'')]=='0'){
+            //console.log("entrou")
+            
+            try {
+  
+              const params1 = {
+                  ExpressionAttributeNames: {
+                  "#S": "show1",
+                
+                  }, 
+                  ExpressionAttributeValues: {
+          
+                  ":y": {
+                    N: "1"
+                    },
+          
+                  }, 
+                  Key: {
+                  "ROOM_ID": {
+                    N: ""+sala_destino+""
+                    }
+                  }, 
+                  TableName: "ar_condicionado_sala", 
+                  UpdateExpression: "SET #S = :y"
+                };
+              console.log(params1)
+              const data1 = await dbclient.send(new UpdateItemCommand(params1));
+              //console.log("Success - item added or updated", data);
+              //return data1;
+              show_room_array[Room_array.indexOf(''+sala_destino+'')]=1
+            } catch (err) {
+              console.log("Error", err);
+            }
+  
+          }
         } catch (err) {
           console.log("Error", err);
         }
+
         sala_anterior=0
         
+
     }
     if (mudar_ac) {
 
@@ -377,13 +443,6 @@ app.get('/', (req, res) => {
       
     }
 
-
-
-      var conv=req.query.sala+''
-      sala=parseInt(conv)
-      if(!sala){
-        sala=1
-      }
     //--------------------------------------------------inicio das funções async------------------------------------
         async function contagem_de_nodos() {
 
@@ -402,7 +461,7 @@ app.get('/', (req, res) => {
           console.log("correu função no reload")
 
 
-          if(sala!=sala_anterior){
+          if(1){
 
             id_array=[];
             smoke_array=[]
@@ -438,6 +497,78 @@ app.get('/', (req, res) => {
               console.log("Error", err);
             }
             
+            if(id_array.length==0){
+
+              try {
+  
+                const params1 = {
+                    ExpressionAttributeNames: {
+                    "#S": "show1",
+                  
+                    }, 
+                    ExpressionAttributeValues: {
+            
+                    ":y": {
+                      N: "0"
+                      },
+            
+                    }, 
+                    Key: {
+                    "ROOM_ID": {
+                      N: ""+sala+""
+                      }
+                    }, 
+                    TableName: "ar_condicionado_sala", 
+                    UpdateExpression: "SET #S = :y"
+                  };
+                console.log(params1)
+                const data1 = await dbclient.send(new UpdateItemCommand(params1));
+                //console.log("Success - item added or updated", data);
+                //return data1;
+                show_room_array[Room_array.indexOf(''+sala+'')]=0
+              } catch (err) {
+                console.log("Error", err);
+              }
+
+              for (let index = 1; index <= Room_array.length; index++) {
+                if (show_room_array[Room_array.indexOf(''+index+'')]=='1') {
+                  sala=index
+                  break
+                }
+              }
+              
+              const params = {
+                // Specify which items in the results are returned.
+                FilterExpression: "ROOM_ID = :s ",
+                // Define the expression attribute value, which are substitutes for the values you want to compare.
+                ExpressionAttributeValues: {
+                  
+                  ":s": { N: ""+sala+"" },
+                  
+                },
+                // Set the projection expression, which the the attributes that you want.
+                ProjectionExpression: "ROOM_ID, DEV_ID , Smoke_Rate, TempHum_Rate ",
+                TableName: "configuration",
+              };
+  
+              try {
+                const data = await dbclient.send(new ScanCommand(params));
+                data.Items.forEach(function (element, index, array) {
+                  
+                  //console.log(element.DEV_ID.N);
+                  id_array.push(element.DEV_ID.N)
+                  smoke_array.push(element.Smoke_Rate.N)
+                  temp_array.push(element.TempHum_Rate.N)
+                  //nr_resultados=nr_resultados+1;
+                  //return data;
+                });
+              } catch (err) {
+                console.log("Error", err);
+              }
+
+            }
+            
+
             var old_id_array = id_array.slice();
 
             id_array.sort()
@@ -476,9 +607,9 @@ app.get('/', (req, res) => {
             temp_array=new_temp_array
           
           
-           // console.log(id_array)
-           // console.log(smoke_array)
-           // console.log(temp_array)
+            //console.log(id_array)
+            //console.log(smoke_array)
+            //console.log(temp_array)
 
               nr_nodos=id_array.length
 
@@ -490,10 +621,12 @@ app.get('/', (req, res) => {
                 nodos_mostrar.push(index)
               }
         
-              sala_anterior=sala
+              //sala_anterior=sala
               atualizar_ac=1
 
+
           }
+          
 
           const params = {
             // Specify which items in the results are returned.
@@ -530,12 +663,12 @@ app.get('/', (req, res) => {
           } catch (err) {
             console.log("Error", err);
           }
-          console.log("pre processing")
-          console.log(time_stamps)
-          console.log(ids_array)
-          console.log(smokes_array)
-          console.log(hum_array)
-          console.log(temps_array)
+          //console.log("pre processing")
+          //console.log(time_stamps)
+          //console.log(ids_array)
+          //console.log(smokes_array)
+          //console.log(hum_array)
+          //console.log(temps_array)
 
           if(atualizar_ac==1){
 
@@ -566,7 +699,7 @@ app.get('/', (req, res) => {
 
           }
 //-----------------------------------------------------------------------------------------------------//
-          console.log(id_array)
+          //console.log(id_array)
           for (let index1 = 0; index1 < id_array.length; index1++){
 
             timestamp_anterior=0
@@ -587,7 +720,7 @@ app.get('/', (req, res) => {
             
           }
         
-          console.log(index_array)
+          //console.log(index_array)
         
           for (let index = 0; index < index_array.length; index++) {
         
@@ -596,10 +729,10 @@ app.get('/', (req, res) => {
             hum_show.push(hum_array[index_array[index]])
             
           }
-          console.log("pos processing")
-          console.log(smoke_show)
-          console.log(hum_show)
-          console.log(temp_show)
+          //console.log("pos processing")
+          //console.log(smoke_show)
+          //console.log(hum_show)
+          //console.log(temp_show)
 
 
       
@@ -865,7 +998,7 @@ app.get('/', (req, res) => {
         <!---------------------------MENU LATERAL----------------------------->
         
         <div id="menu_lateral" class="sidenav">
-        `+salas(Room_array,IDM_array)+`
+        `+salas(Room_array,IDM_array,show_room_array)+`
         </div>
         
         <div class="main">

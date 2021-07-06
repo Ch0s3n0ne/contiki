@@ -1,3 +1,4 @@
+import { time } from 'console';
 import express = require('express');
 import { textSpanEnd } from 'typescript';
 import ts = require('typescript');
@@ -85,7 +86,9 @@ function salas(room_array,idm_array,show_room){
     var text_salas=''
     //console.log(room_array)
     //console.log(show_room)
-    for (let i = 1; i <= room_array.length; i++) {
+    var max_of_array = Math.max.apply(Math, room_array);
+
+    for (let i = 1; i <= max_of_array; i++) {
       
       if(show_room[room_array.indexOf(''+i+'')]=='1'){
 
@@ -326,9 +329,12 @@ app.get('/', (req, res) => {
         console.log("Error", err);
       }
 
+      var max_of_array = Math.max.apply(Math, Room_array);
+
       if(sala==1){
-        if(show_room_array[Room_array.indexOf(''+1+'')]==0){
-          for (let index = 1; index <= Room_array.length; index++) {
+        console.log(typeof show_room_array[Room_array.indexOf(''+1+'')]=='undefined');
+        if(show_room_array[Room_array.indexOf(''+1+'')]==0  || typeof show_room_array[Room_array.indexOf(''+1+'')]=='undefined'){
+          for (let index = 1; index <= max_of_array; index++) {
             if (show_room_array[Room_array.indexOf(''+index+'')]=='1') {
               sala=index
               break
@@ -336,6 +342,12 @@ app.get('/', (req, res) => {
           }
         }
       }
+
+      console.log("caralho inicio")
+      console.log(Room_array)
+      console.log(show_room_array)
+      console.log(sala)
+      console.log("caralho fim")
 
     async function update_parametros(){
         
@@ -572,7 +584,7 @@ app.get('/', (req, res) => {
                 console.log("Error", err);
               }
 
-              for (let index = 1; index <= Room_array.length; index++) {
+              for (let index = 1; index <= max_of_array; index++) {
                 if (show_room_array[Room_array.indexOf(''+index+'')]=='1') {
                   sala=index
                   break
@@ -686,7 +698,7 @@ app.get('/', (req, res) => {
             },
             // Set the projection expression, which the the attributes that you want.
             ProjectionExpression: " Tmestamp ,DEV_ID , Temper ,Hum, Smoke ",
-            TableName: "dados_sensores",
+            TableName: "Dados_Sensores",
           };
           
           try {
@@ -779,9 +791,9 @@ app.get('/', (req, res) => {
         
               if (id_array[index1]==ids_array[index]) {
         
-                if (ids_array[index]>timestamp_anterior) {
+                if (time_stamps[index]>timestamp_anterior) {
         
-                  timestamp_anterior=ids_array[index]
+                  timestamp_anterior=time_stamps[index]
                   indice=index         
                 }
               }
@@ -790,7 +802,8 @@ app.get('/', (req, res) => {
             index_array.push(indice)
             
           }
-        
+          
+          console.log(time_stamps[indice])
           //console.log(index_array)
         
           for (let index = 0; index < index_array.length; index++) {
@@ -871,11 +884,6 @@ app.get('/', (req, res) => {
 
           console.log(array_fumo)
           
-
-
-      
-              
-
     //--------------------------------print da página HTML------------------------------------------
     
     res.send(
@@ -1118,7 +1126,7 @@ app.get('/', (req, res) => {
 
                 var today = new Date();
     
-                var date = today.getFullYear()+'/'+(today.getMonth()+1)+'/'+today.getDate();
+                var date = today.getDate()+'/'+(today.getMonth()+1)+'/'+today.getFullYear();
     
                 var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
     
@@ -1267,7 +1275,7 @@ app.get('/', (req, res) => {
         
                     var today = new Date();
         
-                    var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+                    var date = today.getDate()+'/'+(today.getMonth()+1)+'/'+today.getFullYear();
         
                     var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
         
@@ -1291,7 +1299,7 @@ app.get('/', (req, res) => {
         
                     var today = new Date();
         
-                    var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+                    var date = today.getDate()+'/'+(today.getMonth()+1)+'/'+today.getFullYear();
         
                     var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
         

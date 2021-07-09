@@ -1341,7 +1341,7 @@ app.get('/', (req, res) => {
 
             function confirmar_reset(i){
 
-              if(window.confirm("Deseja mesmo dar reset ao IDM da sala: "+i+"?")){
+              if(window.confirm("Deseja mesmo dar reset ao IDM da sala:"+i+"?")){
 
                 var today = new Date();
         

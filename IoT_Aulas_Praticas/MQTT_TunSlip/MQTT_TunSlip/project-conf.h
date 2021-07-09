@@ -58,8 +58,5 @@
 #define CC2538_RF_CONF_CHANNEL     26
 
 
-#define BROADCAST_CHANNEL     129
-
 /*---------------------------------------------------------------------------*/
 #endif /* PROJECT_CONF_H_ */
-

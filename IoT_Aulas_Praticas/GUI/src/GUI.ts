@@ -52,19 +52,9 @@ const dbclient = new DynamoDBClient({ region: REGION });
 //-----------------------fim da inicialização de variáveis--------------------------------
 
 
-  var l=0;
-  var intervalId = setInterval(function(){
-    l=l+1;
-    //console.log("x")
-  }, 5000);
-  
-//    console.log(nr_salas)
-
-
 // -----------------------------------funções de contrução da interface-----------------------------------------------------------
 
-
-
+//funçao mostrar_adicionar e mostrar_remover trata da manutenção da configuração de apresentação dos nodos no momento do reload
 
 function mostrar_adicionar(i){
 
@@ -78,10 +68,10 @@ function mostrar_adicionar(i){
 function mostrar_remover(i){
   if (nodos_mostrar.includes(i)) {
     nodos_mostrar.splice(nodos_mostrar.indexOf(i),1)
-    //console.log("removeu")
   }
 }
 
+//funçao salas coloca os links para as várias salas do lado esquerdo do ecrã
 function salas(room_array,idm_array,show_room){
     var text_salas=''
     //console.log(room_array)
@@ -105,7 +95,7 @@ return (text_salas)
 }
 
 
-
+//funçao nodos liga com a colocação dos dados dos sensores para os vários nodos nos locais corretos
 function nodos(){
     var x=''
     var print2=''
@@ -174,11 +164,7 @@ function nodos(){
       return(x)
 }
 
-function room_register(){
-
-    //console.log("pedido de mudança")
-}
-
+//função título escreve o título da sala no topo
 function titulo(){
 
     var x=''
@@ -193,7 +179,7 @@ function titulo(){
 
 }
 
-
+//funçao message_list faz o print dos registos de acontecimentos
 function message_list(array_fumo){
 
   var x=''
@@ -217,14 +203,15 @@ function message_list(array_fumo){
  
 }
 
+//função estado_cond trata da colocação do texto correto para o botão do ar condicionado
 function estado_cond(){
   var x=''
 
   if (ac_ativado==1) {
-     x+='<button onclick="mudar_ac()" id="ar_condicionado" style="margin-left: 50%; padding: 10px;">Desactivar Ar Condicionado</button></span>'
+     x+='<button onclick="mudar_ac()" id="ar_condicionado" style="margin-left: 50%; padding: 10px;">Desactivar Ar Condicionado</button>'
   }
   else{
-      x+='<button onclick="mudar_ac()" id="ar_condicionado" style="margin-left: 50%; padding: 10px;">Ativar Ar Condicionado</button></span>'
+      x+='<button onclick="mudar_ac()" id="ar_condicionado" style="margin-left: 50%; padding: 10px;">Ativar Ar Condicionado</button>'
   }
   return(x)
 }
@@ -289,14 +276,44 @@ app.get('/', (req, res) => {
 
     var mudar_ac = req.query.mudar_cond
 
+    var reset_IDM = req.query.reset_IDM
+
     var conv=req.query.sala+''
     sala=parseInt(conv)
     if(!sala){
       sala=1
     }
-
+    //-----------------------fim de processamento de comandos GET--------------------------
+    //-----------------------contagem do número de salas presentes na base de dados----------
     async function contagem_de_salas() {
-    
+
+      if(typeof reset_IDM!='undefined'){
+        
+        const params = {
+          ExpressionAttributeNames: {
+          "#IDM": "IDM",
+        
+          }, 
+          ExpressionAttributeValues: {
+          ":t": {
+            N: "0"
+            }, 
+          }, 
+          Key: {
+          "ROOM_ID": {
+            N: ""+sala+""
+            }
+          }, 
+          //ReturnValues: "ALL_NEW", 
+          TableName: "ar_condicionado_sala", 
+          UpdateExpression: "SET #IDM = :t"
+        };
+      console.log("fez update")
+      const data = await dbclient.send(new UpdateItemCommand(params));
+
+      }
+
+
       nr_salas=0;
       const params = {
         // Specify which items in the results are returned.
@@ -330,7 +347,7 @@ app.get('/', (req, res) => {
       }
 
       var max_of_array = Math.max.apply(Math, Room_array);
-
+      //identificação de que sala deverá ser apresentada inicialmente caso a sala 1 não exista
       if(sala==1){
         console.log(typeof show_room_array[Room_array.indexOf(''+1+'')]=='undefined');
         if(show_room_array[Room_array.indexOf(''+1+'')]==0  || typeof show_room_array[Room_array.indexOf(''+1+'')]=='undefined'){
@@ -343,16 +360,10 @@ app.get('/', (req, res) => {
         }
       }
 
-      console.log("caralho inicio")
-      console.log(Room_array)
-      console.log(show_room_array)
-      console.log(sala)
-      console.log("caralho fim")
-
+    //------------------update dos vários parâmetros dos nodos na base de dados------------
     async function update_parametros(){
-        
-    if(dev_id){
-      //console.log("voltou a entrar")
+
+    if(typeof dev_id!='undefined'){
       var smoke_rate=req.query.freq_fum
       var temp_rate=req.query.freq_tem
       var remove_node=req.query.remove_node
@@ -361,9 +372,9 @@ app.get('/', (req, res) => {
       console.log(remove_node)
 
       var sala_destino=req.query.sala_destino
-
+//-----------------remoção de um nodo da base de dados-------------------
       if(remove_node=="remover"){
-        var params = {
+        const params = {
           Key: {
            "DEV_ID": {
              N: ""+dev_id+""
@@ -382,6 +393,7 @@ app.get('/', (req, res) => {
           }
         };
         run();
+        sala_anterior=0;
       }
       else{
       try {
@@ -391,6 +403,7 @@ app.get('/', (req, res) => {
               "#SR": "Smoke_Rate",
               "#TR": "TempHum_Rate",
               "#RI": "ROOM_ID",
+              "#RW": "ReadWrite"
             
               }, 
               ExpressionAttributeValues: {
@@ -403,6 +416,9 @@ app.get('/', (req, res) => {
                 ":z": {
                   N: ""+sala_destino+""
                 },
+                ":w": {
+                  N: "1"
+                },
               }, 
               Key: {
               "DEV_ID": {
@@ -411,9 +427,9 @@ app.get('/', (req, res) => {
               }, 
               //ReturnValues: "ALL_NEW", 
               TableName: "configuration", 
-              UpdateExpression: "SET #SR = :y, #TR = :t, #RI = :z"
+              UpdateExpression: "SET #SR = :y, #TR = :t, #RI = :z, #RW = :w"
             };
-          console.log(params)
+          //console.log(params)
           const data = await dbclient.send(new UpdateItemCommand(params));
           //console.log("Success - item added or updated", data);
           //return data;
@@ -463,7 +479,7 @@ app.get('/', (req, res) => {
         
       }
     }
-    if (mudar_ac) {
+    if (typeof mudar_ac!='undefined') {
 
       try {
         
@@ -1178,6 +1194,8 @@ app.get('/', (req, res) => {
                     <span style="width: `+IDM+`%"></span>				
                   </div>
                   `+estado_cond()+`
+                  <button onclick="confirmar_reset(`+sala+`)" id="reset_IDM" style="margin-left: 15px; padding: 10px;">Reset IDM </button>
+                  <span/>
             </header>
         
           <section style="margin-top: 10px">
@@ -1227,7 +1245,7 @@ app.get('/', (req, res) => {
                 mostrar+='&mostrar='+i+'sim'
 
                 clearInterval(intervalId);
-                intervalId = setInterval(reload, 3000);
+                intervalId = setInterval(reload, 4000);
                 console.log("reload to timer")
                 
             }
@@ -1253,7 +1271,7 @@ app.get('/', (req, res) => {
                 mostrar+='&mostrar='+i+'nao'
 
                 clearInterval(intervalId);
-                intervalId = setInterval(reload, 3000);
+                intervalId = setInterval(reload, 4000);
                 console.log("reload to timer")
             }
             
@@ -1316,11 +1334,29 @@ app.get('/', (req, res) => {
                     get+='&message_number='+dateTime+'Ar condicionado ativado sala: '+sala+'&mudar_cond='+1
 
                     location.replace('http://localhost:8080/?sala='+sala+''+get+''+mostrar)
-        
+                    
                     console.log(entry)
                 }         
             }
-            
+
+            function confirmar_reset(i){
+
+              if(window.confirm("Deseja mesmo dar reset ao IDM da sala: "+i+"?")){
+
+                var today = new Date();
+        
+                var date = today.getDate()+'/'+(today.getMonth()+1)+'/'+today.getFullYear();
+    
+                var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+    
+                var dateTime = date+' '+time+'⇨';
+
+                get+='&message_number='+dateTime+'Foi realizado o reset do IDM sala: '+i+''
+
+                location.replace('http://localhost:8080/?sala='+i+''+get+''+'&reset_IDM=true')
+              }
+              
+            }
             //função que atua quando clicamos para mudar de sala
             function mudar_sala(i){              
                 sala=i

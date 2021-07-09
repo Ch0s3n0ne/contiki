@@ -1,9 +1,10 @@
-CONTIKI_PROJECT=mqtt_tunslip_demo exerc1
+CONTIKI_PROJECT=mqtt_tunslip_demo
+CONTIKI_TARGET_SOURCEFILES = dht22.c
 all: $(CONTIKI_PROJECT) 
 
 CONTIKI = ../../../../contiki
 
-APPS += mqtt
+APPS += mqtt json
 
 SMALL=1
 
@@ -16,7 +17,6 @@ WITH_WEBSERVER=1
 CFLAGS += -DUIP_CONF_TCP=1
 CFLAGS += -DWEBSERVER=1
 PROJECT_SOURCEFILES += httpd-simple.c
-
 
 ifeq ($(PREFIX),)
  PREFIX = fd00::1/64

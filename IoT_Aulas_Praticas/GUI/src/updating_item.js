@@ -35,18 +35,17 @@ const ddbClient = new DynamoDBClient({ region: REGION });
 const run = async () => {
   try {
 
-    const params = {
-      Key: {
-       "Artist": {
-         S: "No One You Know"
-        }, 
-       "SongTitle": {
-         S: "Scared of My Shadow"
-        }
-      }, 
-      TableName: "Music"
-     };
-     
+    var params = {
+  Key: {
+   "Artist": {
+     S: "No One You Know"
+    }, 
+   "SongTitle": {
+     S: "Scared of My Shadow"
+    }
+  }, 
+  TableName: "Music"
+ };
     console.log(params)
     const data = await ddbClient.send(new UpdateItemCommand(params));
     console.log("Success - item added or updated", data);

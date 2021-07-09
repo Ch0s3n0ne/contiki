@@ -28,16 +28,18 @@ var ids_array=[]
 
 
 const params = {
-  KeyConditionExpression: "ROOM_ID = :s ",
-
+  // Specify which items in the results are returned.
+  FilterExpression: "ROOM_ID = :s ",
+  // Define the expression attribute value, which are substitutes for the values you want to compare.
   ExpressionAttributeValues: {
-    ":s": { N: "4" },
-
+    
+    ":s": { N: "" },
+    
   },
-  ProjectionExpression: "ROOM_ID, AC, IDM",
-  TableName: "ar_condicionado_sala",
+  // Set the projection expression, which the the attributes that you want.
+  ProjectionExpression: " Tmestamp ,DEV_ID , Temper ,Hum, Smoke ",
+  TableName: "Dados_Sensores",
 };
-
   // Create DynamoDB service object
   const dbclient = new DynamoDBClient({ region: REGION });
 

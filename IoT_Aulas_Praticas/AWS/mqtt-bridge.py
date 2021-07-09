@@ -4,7 +4,6 @@
 # You can easily change this script, in case you need to subscribe to topics from the AWS cloud 
 # and publish them locally in the 6LoWPAN network.
 
-# Libraries:
 import paho.mqtt.client as mqtt
 import ssl
 import sys
@@ -15,11 +14,13 @@ import sys
 
 # There is a Mosquitto server running locally on the Virtual Machine. 
 # For the project, you should change this to the IPv6 server of the local MQTT broker:
-LOCAL_MQTT_URL = "localhost"
+LOCAL_MQTT_URL = "localhost" #local MQTT Broker IPv6 (Acho eu, estava "localhost")
+
 # You may also try "test.mosquitto.org"
 
-# A topic to get information from the zolertia board(s):	 
-SENSORS_TOPIC = "zolertia/sensor_status"
+# A topic to get information from the zolertia board(s):     
+SENSORS_GAS_TOPIC = "dev/1002/smokeSensor"
+SENSORS_TEMPHUM_TOPIC = "dev/1002/temphumSensor"
 
 # Address of the Cloud MQTT Broker:
 CLOUD_MQTT_URL = "a2yat24nuqf2ua-ats.iot.us-east-2.amazonaws.com"
@@ -28,27 +29,28 @@ CERT_PEM_FILE = "../iot_certs/de649b3223-certificate.pem.crt"
 PRIVATE_KEY_FILE = "../iot_certs/de649b3223-private.pem.key"
 
 # A topic to get information from the cloud:	 
-CLOUD_TOPIC = "cloud/action"
+CLOUD_TOPIC = "dev/1002/devState"
 
 #########################################################################
 
 # Callback for initial local network connection:
 def on_connect(local_client, userdata, flags, rc):
     print("Connected to local MQTT broker with result code " + str(rc))
-    local_client.subscribe(SENSORS_TOPIC)
-    print("Subscribed to local topic: " + SENSORS_TOPIC + "\n")
+    local_client.subscribe(SENSORS_TEMPHUM_TOPIC)
+    local_client.subscribe(SENSORS_GAS_TOPIC)
+    print("Subscribed to local topic: " + SENSORS_TEMPHUM_TOPIC + "\n")
 
-# Callback for received message in the local network:
+# Callback for received message in the
 def on_local_message(local_client, userdata, msg):
     #publish the exact same message on the MQTT broker in the cloud:
-    print("Local -> Cloud: Topic [" + msg.topic + "]. Msg \""+str(msg.payload)+"\"")
-    cloud_client.publish(msg.topic,str(msg.payload))
+    print("Local -> Cloud: Topic [" + msg.topic + "]. Msg \""+str(msg.payload)[2:-1]+"\"")
+    cloud_client.publish(msg.topic,str(msg.payload)[2:-1])
 
 # Callback for received message in the cloud:
 def on_cloud_message(cloud_client, userdata, msg):
     #publish the exact same message on the local MQTT broker:
-    print("Cloud -> Local: Topic [" + msg.topic + "]. Msg \""+str(msg.payload)+"\"")
-    local_client.publish(msg.topic,str(msg.payload))
+    print("Cloud -> Local: Topic [" + msg.topic + "]. Msg \""+str(msg.payload)[2:-1]+"\"")
+    local_client.publish(msg.topic,str(msg.payload)[2:-1])
 
 #########################################################################
 
@@ -89,5 +91,3 @@ except (KeyboardInterrupt): #catch keyboard interrupts
 
 # Also test publishing something in the cloud and check if you receive it locally with:
 # mosquitto_sub -h localhost -t cloud/action
-
-

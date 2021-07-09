@@ -30,13 +30,18 @@
 #include "dev/leds.h"
 #include "dev/adc-zoul.h"
 #include "dev/zoul-sensors.h"
+#include "dev/dht22.h"
+
+#include "jsonparse.h" /* Include a parse library to read JSON files*/
 
 static uip_ipaddr_t prefix;
 static uint8_t prefix_set;
 
 PROCESS(mqtt_tunslip_publish_process, "MQTT TUNSLIP Publish Example");
+PROCESS(temp_hum_trigger, "Trigger to measure and publish temp and hum");
+PROCESS(gas_trigger, "Trigger to measure and publish gas");
 
-AUTOSTART_PROCESSES(&mqtt_tunslip_publish_process);
+AUTOSTART_PROCESSES(&mqtt_tunslip_publish_process, &temp_hum_trigger, &gas_trigger);
 
 /* Use simple webserver with only one page for minimum footprint.
  * Multiple connections can result in interleaved tcp segments since
@@ -54,14 +59,22 @@ AUTOSTART_PROCESSES(&mqtt_tunslip_publish_process);
 #endif
 #define BUFFER_SIZE               64
 #define APP_BUFFER_SIZE           512
-#define DEFAULT_PUBLISH_TOPIC     "deec/send"
-#define DEFAULT_SUBSCRIBE_TOPIC   "deec/receive"
+#define DEFAULT_PUBLISH_TOPIC     "dev/1001/smokeSensor"
+#define DEFAULT_PUBLISH_TOPIC_TEMPHUM "dev/1001/temphumSensor"
+#define DEFAULT_SUBSCRIBE_TOPIC   "dev/1001/devState"
+#define DEV_ID 1001
 #define DEFAULT_BROKER_PORT       1883
-#define DEFAULT_PUBLISH_INTERVAL     (10* CLOCK_SECOND)
+#define DEFAULT_PUBLISH_INTERVAL     (0.1 * CLOCK_SECOND) // Changed to 0.1
+//#define DEFAULT_TEMPHUM_PUBLISH_INTERVAL (10 * CLOCK_SECOND) //Default publish time for temp and hum
 #define DEFAULT_KEEP_ALIVE_TIMER     60
 
+static int DEFAULT_TEMPHUM_PUBLISH_INTERVAL = 30;
+static int DEFAULT_GAS_PUBLISH_INTERVAL = 5;
+#undef DEBUG_MQTT
+#define DEBUG_MQTT 1
+
 /* Maximum TCP segment size for outgoing segments of our socket */
-#define MAX_TCP_SEGMENT_SIZE       32
+#define MAX_TCP_SEGMENT_SIZE       128
 
 /*
  * MQTT broker address
@@ -120,6 +133,7 @@ static uint8_t state;
  */
 typedef struct mqtt_client_config {
   char event_type_id[CONFIG_EVENT_TYPE_ID_LEN];
+  char event_type_id2[CONFIG_EVENT_TYPE_ID_LEN + 1];
   char broker_ip[CONFIG_IP_ADDR_STR_LEN];
   char cmd_type[CONFIG_CMD_TYPE_LEN];  
   clock_time_t pub_interval;
@@ -132,6 +146,7 @@ typedef struct mqtt_client_config {
  */
 static char client_id[BUFFER_SIZE];
 static char pub_topic[BUFFER_SIZE];
+static char pub_topic_temphum[BUFFER_SIZE];
 static char sub_topic[BUFFER_SIZE];
 /*---------------------------------------------------------------------------*/
 /*
@@ -139,13 +154,21 @@ static char sub_topic[BUFFER_SIZE];
  * We will need to increase if we start publishing more data.
  */
 static struct mqtt_connection conn;
-static char app_buffer[APP_BUFFER_SIZE];
+static char app_buffer1[APP_BUFFER_SIZE];
+static char app_buffer2[APP_BUFFER_SIZE];
+static char room_buffer[APP_BUFFER_SIZE];
 /*---------------------------------------------------------------------------*/
 static struct mqtt_message *msg_ptr = 0;
 static struct etimer publish_periodic_timer;
+static struct etimer temp_hum_timer;
+static struct etimer gas_timer;
 static struct ctimer ct;
 static char *buf_ptr;
+static char *buf_ptr2;
 static uint16_t seq_nr_value = 0;
+int publish_temp_hum = 0;
+int publish_gas_bool = 0;
+int temperature, humidity;
 /*---------------------------------------------------------------------------*/
 static mqtt_client_config_t conf;
 
@@ -198,14 +221,60 @@ void set_prefix_64(uip_ipaddr_t *prefix_64)
 }
 
 /*---------------------------------------------------------------------------*/
-static void pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
+static void pub_handler(const char *topic, uint16_t topic_len, const char *chunk,
             uint16_t chunk_len)
 {
-  printf("Pub Handler: topic='%s' (len=%u), chunk_len=%u, content: %s\n", topic, topic_len, chunk_len, chunk);
-  leds_toggle(LEDS_RED); //toggle red led on/off when msgs arrive
+  struct jsonparse_state state;
+  char buf[64];
 
+  jsonparse_setup(&state, chunk, strlen(chunk));
+  
+  char type;
+  //percorre todos os campos do JSON
+  while ((type = jsonparse_next(&state)) != JSON_TYPE_ERROR) {
+    
+    if (jsonparse_copy_value(&state, buf, sizeof(buf))) {
+      
+
+      if(strcmp(buf, "Smoke Rate")==0){
+        
+        jsonparse_next(&state);
+        
+        if (jsonparse_copy_value(&state, buf, sizeof(buf))){
+          
+          DEFAULT_TEMPHUM_PUBLISH_INTERVAL = atoi(buf);
+          printf("Smoke Rate: %i", DEFAULT_TEMPHUM_PUBLISH_INTERVAL);
+
+        }
+      }
+      
+      if(strcmp(buf, "TempHum Rate")==0){
+        
+        jsonparse_next(&state);
+        
+        if (jsonparse_copy_value(&state, buf, sizeof(buf))){
+          
+          DEFAULT_TEMPHUM_PUBLISH_INTERVAL = atoi(buf);
+          printf("TempHum Rate: %i", DEFAULT_TEMPHUM_PUBLISH_INTERVAL);
+
+        }
+      }
+
+      if(strcmp(buf, "Room ID")==0){
+        
+
+        jsonparse_next(&state);
+        
+        jsonparse_copy_value(&state, room_buffer, sizeof(room_buffer));
+
+    }
+
+    printf("\n");
+    }
+  }
   return;
 }
+
 
 /*---------------------------------------------------------------------------*/
 static void publish_led_off(void *d)
@@ -267,12 +336,14 @@ static void mqtt_event(struct mqtt_connection *m, mqtt_event_t event, void *data
 static int construct_pub_topic(void)
 {
   int len = snprintf(pub_topic, BUFFER_SIZE, DEFAULT_PUBLISH_TOPIC);
-  if(len < 0 || len >= BUFFER_SIZE) {
+  int len1 = snprintf(pub_topic_temphum, BUFFER_SIZE, DEFAULT_PUBLISH_TOPIC_TEMPHUM);
+
+  if(len < 0 || len >= BUFFER_SIZE || len1 < 0 || len1 >+ BUFFER_SIZE) {
     printf("Pub Topic too large: %d, Buffer %d\n", len, BUFFER_SIZE);
     return 0;
   }
 
-  printf("Publishing topic: %s\n", pub_topic);
+  printf("Publishing topics: %s and %s\n", pub_topic, pub_topic_temphum);
 
   return 1;
 }
@@ -354,7 +425,8 @@ static int init_config()
 
   conf.broker_port = DEFAULT_BROKER_PORT;
   conf.pub_interval = DEFAULT_PUBLISH_INTERVAL;
-
+  sprintf(room_buffer, "1");
+  
   return 1;
 }
 /*---------------------------------------------------------------------------*/
@@ -379,24 +451,19 @@ static void subscribe(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-static void publish_temperature(void)
-{
+
+static void publish_gas(void){
   int len;
-  uint16_t aux;
   int remaining = APP_BUFFER_SIZE;
 
   seq_nr_value++;
-  buf_ptr = app_buffer;
- 
+  buf_ptr = app_buffer1;
 
-/*
-{"Id": 1950, "Timestamp": 21000, "Temp": 25.952}
-*/
   len = snprintf(buf_ptr, remaining,
                  "{"
-                 "\"Id\":\"%s\","
-                 "\"Timestamp\":\"%ld\"",
-                 "1950", clock_seconds()*1000);
+                 "\"Room ID\":%s"
+                 ",\"Dev ID\":%i",
+                 room_buffer, DEV_ID);
 
   if(len < 0 || len >= remaining) {
     printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
@@ -406,14 +473,7 @@ static void publish_temperature(void)
   remaining -= len;
   buf_ptr += len;
 
-#if CONTIKI_TARGET_ZOUL
-  aux = cc2538_temp_sensor.value(CC2538_SENSORS_VALUE_TYPE_CONVERTED);
-  len = snprintf(buf_ptr, remaining, ",\"Temp\":\"%u.%02u\"", aux / 1000, aux % 1000);
-
-#else /* Default is Z1 */
-  aux = tmp102.value(TMP102_READ);
-  len = snprintf(buf_ptr, remaining, ",\"Temp\":\"%u.%02u\"", aux / 100, aux % 100);
-#endif
+  len = snprintf(buf_ptr, remaining, ",\"Smoke\":\"0\"");
 
   remaining -= len;
   buf_ptr += len;
@@ -425,10 +485,57 @@ static void publish_temperature(void)
     return;
   }
 
-  mqtt_publish(&conn, NULL, pub_topic, (uint8_t *)app_buffer,
-               strlen(app_buffer), MQTT_QOS_LEVEL_0, MQTT_RETAIN_OFF);
+  mqtt_publish(&conn, NULL, pub_topic, (uint8_t *)app_buffer1,
+               strlen(app_buffer1), MQTT_QOS_LEVEL_0, MQTT_RETAIN_OFF);
+  printf("APP - Publish to %s: %s\n", pub_topic, app_buffer1);
+}
 
-  printf("APP - Publish to %s: %s\n", pub_topic, app_buffer);
+static void publish_temperature_humidity(void)
+{
+  int len;
+  uint16_t aux;
+  int remaining = APP_BUFFER_SIZE;
+
+  seq_nr_value++;
+  buf_ptr2 = app_buffer2;
+
+/*
+{"Id": 1950, "Timestamp": 21000, "Temp": 25.952}
+*/
+  
+  len = snprintf(buf_ptr2, remaining,
+                 "{"
+                 "\"Room ID\":%s"
+                 ",\"Dev ID\":%i",
+                 room_buffer, DEV_ID);
+
+  if(len < 0 || len >= remaining) {
+    printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
+    return;
+  }
+
+  remaining -= len;
+  buf_ptr2 += len;
+
+
+  aux = cc2538_temp_sensor.value(CC2538_SENSORS_VALUE_TYPE_CONVERTED);
+  len = snprintf(buf_ptr2, remaining, ",\"Temp\":\"%02d.%02d\",\"Hum\":\"%02d.%02d\",\"Smoke\":\"0\"", temperature / 10, temperature % 10, humidity / 10, humidity % 10);
+  //len = snprintf(buf_ptr2, remaining, ",\"Temp\":\"25.03\",\"Hum\":\"55.28\",\"Smoke\":\"0\"");
+
+  remaining -= len;
+  buf_ptr2 += len;
+
+  len = snprintf(buf_ptr2, remaining, "}");
+
+  if(len < 0 || len >= remaining) {
+    printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
+    return;
+  }
+
+  mqtt_publish(&conn, NULL, pub_topic_temphum, (uint8_t *)app_buffer2,
+               strlen(app_buffer2), MQTT_QOS_LEVEL_0, MQTT_RETAIN_OFF);
+
+  printf("APP - Publish to %s: %s\n", pub_topic_temphum, app_buffer2);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -494,7 +601,16 @@ static void state_machine(void)
         leds_on(LEDS_GREEN);
         //printf("Publishing\n");
         ctimer_set(&ct, PUBLISH_LED_ON_DURATION, publish_led_off, NULL);
-        publish_temperature();
+
+        if(publish_temp_hum == 1){
+          publish_temperature_humidity();
+          DEFAULT_TEMPHUM_PUBLISH_INTERVAL = 5;
+          publish_temp_hum = 0;
+        }
+        else if (publish_gas_bool == 1){
+          publish_gas();
+          publish_gas_bool = 0;
+        }
       }
       etimer_set(&publish_periodic_timer, conf.pub_interval);
 
@@ -510,9 +626,9 @@ static void state_machine(void)
        * simply there is some network delay. In both cases, we refuse to
        * trigger a new message and we wait for TCP to either ACK the entire
        * packet after retries, or to timeout and notify us.
-       */
+       
       printf("Publishing... (MQTT state=%d, q=%u)\n", conn.state,
-          conn.out_queue_full);
+          conn.out_queue_full);*/
     }
     break;
 
@@ -580,13 +696,14 @@ PROCESS_THREAD(mqtt_tunslip_publish_process, ev, data)
   PROCESS_PAUSE();
 
   SENSORS_ACTIVATE(button_sensor);  // Activate Button...
+  
 
   PRINTF("MQTT TUNSLIP Publisher Started\n");
 
 #if USE_TUNSLIP6
   /* Request prefix until it has been received */
   while(!prefix_set) {
-    etimer_set(&buf_ptr, CLOCK_SECOND);
+    etimer_set(&et, CLOCK_SECOND);
     request_prefix();
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   }
@@ -628,4 +745,45 @@ PROCESS_THREAD(mqtt_tunslip_publish_process, ev, data)
 
   PROCESS_END();
 }
+
+PROCESS_THREAD(temp_hum_trigger, ev, data)
+{
+  PROCESS_BEGIN();
+  SENSORS_ACTIVATE(dht22);
+  dht22_read_all(&temperature, &humidity);
+
+  while(1) {
+
+    etimer_set(&temp_hum_timer, DEFAULT_TEMPHUM_PUBLISH_INTERVAL * CLOCK_SECOND);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&temp_hum_timer));
+    
+    publish_temp_hum = 1;
+    //printf(dht22.value(DHT22_READ_TEMP);
+    dht22_read_all(&temperature, &humidity);
+    etimer_reset(&temp_hum_timer);
+
+  }
+
+  PROCESS_END();
+}
+
+PROCESS_THREAD(gas_trigger, ev, data)
+{
+  PROCESS_BEGIN();
+  //SENSORS_ACTIVATE(gas_sensor);
+
+  while(1) {
+
+    etimer_set(&gas_timer, DEFAULT_GAS_PUBLISH_INTERVAL * CLOCK_SECOND);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&gas_timer));
+    
+    publish_gas_bool = 1;
+    etimer_reset(&gas_timer);
+        
+
+  }
+
+  PROCESS_END();
+}
+
 /*---------------------------------------------------------------------------*/

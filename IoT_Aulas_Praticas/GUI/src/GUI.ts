@@ -308,7 +308,7 @@ app.get('/', (req, res) => {
           TableName: "ar_condicionado_sala", 
           UpdateExpression: "SET #IDM = :t"
         };
-      console.log("fez update")
+      //console.log("fez update")
       const data = await dbclient.send(new UpdateItemCommand(params));
 
       }

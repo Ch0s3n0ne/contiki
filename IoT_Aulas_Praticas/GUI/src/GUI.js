@@ -216,7 +216,6 @@ app.get('/', function (req, res) {
     var tipo_msg = typeof messages;
     if (tipo_msg === 'undefined') {
         string_mensagens += '';
-        //console.log("mensagem recebida não defenida")
     }
     else if (tipo_msg === 'string') {
         string_mensagens += 'next->' + messages;
@@ -226,10 +225,7 @@ app.get('/', function (req, res) {
             string_mensagens += 'next->' + messages[index];
         }
     }
-    //console.log("tipo_dados",tipo_dados)
-    //console.log("dados_sel",dados_sel)
     if (tipo_dados === 'undefined') {
-        //console.log("mensagem recebida não defenida")
     }
     else if (tipo_dados === 'string') {
         for (var index = 0; index < nr_nodos; index++) {
@@ -271,7 +267,7 @@ app.get('/', function (req, res) {
                     //--------------------------------------------------inicio das funções async------------------------------------
                     function contagem_de_nodos() {
                         return __awaiter(this, void 0, void 0, function () {
-                            var params_1, data, err_5, params1, data1, err_6, index, params_2, data, err_7, old_id_array, changes_array, index, index1, new_smoke_array, new_temp_array, index, index1, index, params, data, err_8, date_stamps, index, date, params_3, results, err_9, index1, index, index, index, id_fumo, array_time_index, array_smoke_index, index1, old_array_time_index, tempo_inicio, i, date, tempo_fumo;
+                            var params, data, err_6, params1, data1, err_7, index, params, data, err_8, old_id_array, changes_array, index, index1, new_smoke_array, new_temp_array, index, index1, index, params, data, err_9, date_stamps, index, date, params4, results, err_10, index1, index, index, index, id_fumo, array_time_index, array_smoke_index, index1, old_array_time_index, tempo_inicio, i, date, tempo_fumo;
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
                                     case 0:
@@ -288,11 +284,10 @@ app.get('/', function (req, res) {
                                         hum_show = [];
                                         date_show = [];
                                         console.log("correu função no reload");
-                                        if (!1) return [3 /*break*/, 13];
                                         id_array = [];
                                         smoke_array = [];
                                         temp_array = [];
-                                        params_1 = {
+                                        params = {
                                             // Specify which items in the results are returned.
                                             FilterExpression: "ROOM_ID = :s ",
                                             // Define the expression attribute value, which are substitutes for the values you want to compare.
@@ -306,7 +301,7 @@ app.get('/', function (req, res) {
                                         _a.label = 1;
                                     case 1:
                                         _a.trys.push([1, 3, , 4]);
-                                        return [4 /*yield*/, dbclient.send(new ScanCommand(params_1))];
+                                        return [4 /*yield*/, dbclient.send(new ScanCommand(params))];
                                     case 2:
                                         data = _a.sent();
                                         data.Items.forEach(function (element, index, array) {
@@ -319,8 +314,8 @@ app.get('/', function (req, res) {
                                         });
                                         return [3 /*break*/, 4];
                                     case 3:
-                                        err_5 = _a.sent();
-                                        console.log("Error", err_5);
+                                        err_6 = _a.sent();
+                                        console.log("Error", err_6);
                                         return [3 /*break*/, 4];
                                     case 4:
                                         if (!(id_array.length == 0)) return [3 /*break*/, 12];
@@ -353,8 +348,8 @@ app.get('/', function (req, res) {
                                         show_room_array[Room_array.indexOf('' + sala + '')] = 0;
                                         return [3 /*break*/, 8];
                                     case 7:
-                                        err_6 = _a.sent();
-                                        console.log("Error", err_6);
+                                        err_7 = _a.sent();
+                                        console.log("Error", err_7);
                                         return [3 /*break*/, 8];
                                     case 8:
                                         for (index = 1; index <= max_of_array; index++) {
@@ -363,7 +358,7 @@ app.get('/', function (req, res) {
                                                 break;
                                             }
                                         }
-                                        params_2 = {
+                                        params = {
                                             // Specify which items in the results are returned.
                                             FilterExpression: "ROOM_ID = :s ",
                                             // Define the expression attribute value, which are substitutes for the values you want to compare.
@@ -377,7 +372,7 @@ app.get('/', function (req, res) {
                                         _a.label = 9;
                                     case 9:
                                         _a.trys.push([9, 11, , 12]);
-                                        return [4 /*yield*/, dbclient.send(new ScanCommand(params_2))];
+                                        return [4 /*yield*/, dbclient.send(new ScanCommand(params))];
                                     case 10:
                                         data = _a.sent();
                                         data.Items.forEach(function (element, index, array) {
@@ -390,8 +385,8 @@ app.get('/', function (req, res) {
                                         });
                                         return [3 /*break*/, 12];
                                     case 11:
-                                        err_7 = _a.sent();
-                                        console.log("Error", err_7);
+                                        err_8 = _a.sent();
+                                        console.log("Error", err_8);
                                         return [3 /*break*/, 12];
                                     case 12:
                                         old_id_array = id_array.slice();
@@ -429,8 +424,6 @@ app.get('/', function (req, res) {
                                             sala_anterior = sala;
                                         }
                                         atualizar_ac = 1;
-                                        _a.label = 13;
-                                    case 13:
                                         params = {
                                             // Specify which items in the results are returned.
                                             FilterExpression: "ROOM_ID = :s ",
@@ -442,11 +435,11 @@ app.get('/', function (req, res) {
                                             ProjectionExpression: " Tmestamp ,DEV_ID , Temper ,Hum, Smoke ",
                                             TableName: "Dados_Sensores"
                                         };
-                                        _a.label = 14;
-                                    case 14:
-                                        _a.trys.push([14, 16, , 17]);
+                                        _a.label = 13;
+                                    case 13:
+                                        _a.trys.push([13, 15, , 16]);
                                         return [4 /*yield*/, dbclient.send(new ScanCommand(params))];
-                                    case 15:
+                                    case 14:
                                         data = _a.sent();
                                         data.Items.forEach(function (element, index, array) {
                                             if (id_array.includes(element.DEV_ID.N)) {
@@ -457,12 +450,12 @@ app.get('/', function (req, res) {
                                                 temps_array.push(element.Temper.N);
                                             }
                                         });
-                                        return [3 /*break*/, 17];
+                                        return [3 /*break*/, 16];
+                                    case 15:
+                                        err_9 = _a.sent();
+                                        console.log("Error", err_9);
+                                        return [3 /*break*/, 16];
                                     case 16:
-                                        err_8 = _a.sent();
-                                        console.log("Error", err_8);
-                                        return [3 /*break*/, 17];
-                                    case 17:
                                         console.log("pre processing");
                                         console.log(time_stamps);
                                         console.log(ids_array);
@@ -479,8 +472,8 @@ app.get('/', function (req, res) {
                                                 ":" + date.getMinutes() +
                                                 ":" + date.getSeconds());
                                         }
-                                        if (!(atualizar_ac == 1)) return [3 /*break*/, 21];
-                                        params_3 = {
+                                        if (!(atualizar_ac == 1)) return [3 /*break*/, 20];
+                                        params4 = {
                                             KeyConditionExpression: "ROOM_ID = :s ",
                                             ExpressionAttributeValues: {
                                                 ":s": { N: "" + sala + "" }
@@ -488,22 +481,22 @@ app.get('/', function (req, res) {
                                             ProjectionExpression: "ROOM_ID, AC, IDM",
                                             TableName: "ar_condicionado_sala"
                                         };
-                                        _a.label = 18;
+                                        _a.label = 17;
+                                    case 17:
+                                        _a.trys.push([17, 19, , 20]);
+                                        return [4 /*yield*/, dbclient.send(new QueryCommand(params4))];
                                     case 18:
-                                        _a.trys.push([18, 20, , 21]);
-                                        return [4 /*yield*/, dbclient.send(new QueryCommand(params_3))];
-                                    case 19:
                                         results = _a.sent();
                                         results.Items.forEach(function (element, index, array) {
                                             ac_ativado = element.AC.N;
                                             IDM = element.IDM.N;
                                         });
-                                        return [3 /*break*/, 21];
+                                        return [3 /*break*/, 20];
+                                    case 19:
+                                        err_10 = _a.sent();
+                                        console.error(err_10);
+                                        return [3 /*break*/, 20];
                                     case 20:
-                                        err_9 = _a.sent();
-                                        console.error(err_9);
-                                        return [3 /*break*/, 21];
-                                    case 21:
                                         //-----------------------------------------------------------------------------------------------------//
                                         //console.log(id_array)
                                         for (index1 = 0; index1 < id_array.length; index1++) {
@@ -577,20 +570,19 @@ app.get('/', function (req, res) {
                             });
                         });
                     }
-                    var smoke_rate, temp_rate, remove_node, sala_destino, params_4, run, params_5, data, params1, data1, err_2, err_3, params_6, data, err_4;
-                    var _this = this;
+                    var smoke_rate, temp_rate, remove_node, sala_destino, params, data, err_2, params1, data, params2, data1, err_3, err_4, params3, data, err_5;
                     return __generator(this, function (_a) {
                         switch (_a.label) {
                             case 0:
-                                if (!(typeof dev_id != 'undefined')) return [3 /*break*/, 9];
+                                if (!(typeof dev_id != 'undefined')) return [3 /*break*/, 13];
                                 smoke_rate = req.query.freq_fum;
                                 temp_rate = req.query.freq_tem;
                                 remove_node = req.query.remove_node;
                                 console.log("remover nodo");
                                 console.log(remove_node);
                                 sala_destino = req.query.sala_destino;
-                                if (!(remove_node == "remover")) return [3 /*break*/, 1];
-                                params_4 = {
+                                if (!(remove_node == "remover")) return [3 /*break*/, 5];
+                                params = {
                                     Key: {
                                         "DEV_ID": {
                                             N: "" + dev_id + ""
@@ -598,30 +590,23 @@ app.get('/', function (req, res) {
                                     },
                                     TableName: "configuration"
                                 };
-                                run = function () { return __awaiter(_this, void 0, void 0, function () {
-                                    var data, err_10;
-                                    return __generator(this, function (_a) {
-                                        switch (_a.label) {
-                                            case 0:
-                                                _a.trys.push([0, 2, , 3]);
-                                                return [4 /*yield*/, dbclient.send(new DeleteItemCommand(params_4))];
-                                            case 1:
-                                                data = _a.sent();
-                                                return [3 /*break*/, 3];
-                                            case 2:
-                                                err_10 = _a.sent();
-                                                console.log("Error", err_10);
-                                                return [3 /*break*/, 3];
-                                            case 3: return [2 /*return*/];
-                                        }
-                                    });
-                                }); };
-                                run();
-                                sala_anterior = 0;
-                                return [3 /*break*/, 9];
+                                _a.label = 1;
                             case 1:
-                                _a.trys.push([1, 7, , 8]);
-                                params_5 = {
+                                _a.trys.push([1, 3, , 4]);
+                                return [4 /*yield*/, dbclient.send(new DeleteItemCommand(params))];
+                            case 2:
+                                data = _a.sent();
+                                return [3 /*break*/, 4];
+                            case 3:
+                                err_2 = _a.sent();
+                                console.log("Error", err_2);
+                                return [3 /*break*/, 4];
+                            case 4:
+                                sala_anterior = 0;
+                                return [3 /*break*/, 13];
+                            case 5:
+                                _a.trys.push([5, 11, , 12]);
+                                params1 = {
                                     ExpressionAttributeNames: {
                                         "#SR": "Smoke_Rate",
                                         "#TR": "TempHum_Rate",
@@ -651,14 +636,14 @@ app.get('/', function (req, res) {
                                     TableName: "configuration",
                                     UpdateExpression: "SET #SR = :y, #TR = :t, #RI = :z, #RW = :w"
                                 };
-                                return [4 /*yield*/, dbclient.send(new UpdateItemCommand(params_5))];
-                            case 2:
+                                return [4 /*yield*/, dbclient.send(new UpdateItemCommand(params1))];
+                            case 6:
                                 data = _a.sent();
-                                if (!(show_room_array[Room_array.indexOf('' + sala_destino + '')] == '0')) return [3 /*break*/, 6];
-                                _a.label = 3;
-                            case 3:
-                                _a.trys.push([3, 5, , 6]);
-                                params1 = {
+                                if (!(show_room_array[Room_array.indexOf('' + sala_destino + '')] == '0')) return [3 /*break*/, 10];
+                                _a.label = 7;
+                            case 7:
+                                _a.trys.push([7, 9, , 10]);
+                                params2 = {
                                     ExpressionAttributeNames: {
                                         "#S": "show1"
                                     },
@@ -676,31 +661,31 @@ app.get('/', function (req, res) {
                                     UpdateExpression: "SET #S = :y"
                                 };
                                 console.log(params1);
-                                return [4 /*yield*/, dbclient.send(new UpdateItemCommand(params1))];
-                            case 4:
+                                return [4 /*yield*/, dbclient.send(new UpdateItemCommand(params2))];
+                            case 8:
                                 data1 = _a.sent();
                                 //console.log("Success - item added or updated", data);
                                 //return data1;
                                 show_room_array[Room_array.indexOf('' + sala_destino + '')] = 1;
-                                return [3 /*break*/, 6];
-                            case 5:
-                                err_2 = _a.sent();
-                                console.log("Error", err_2);
-                                return [3 /*break*/, 6];
-                            case 6: return [3 /*break*/, 8];
-                            case 7:
+                                return [3 /*break*/, 10];
+                            case 9:
                                 err_3 = _a.sent();
                                 console.log("Error", err_3);
-                                return [3 /*break*/, 8];
-                            case 8:
+                                return [3 /*break*/, 10];
+                            case 10: return [3 /*break*/, 12];
+                            case 11:
+                                err_4 = _a.sent();
+                                console.log("Error", err_4);
+                                return [3 /*break*/, 12];
+                            case 12:
                                 sala_anterior = 0;
-                                _a.label = 9;
-                            case 9:
-                                if (!(typeof mudar_ac != 'undefined')) return [3 /*break*/, 14];
-                                _a.label = 10;
-                            case 10:
-                                _a.trys.push([10, 12, , 13]);
-                                params_6 = {
+                                _a.label = 13;
+                            case 13:
+                                if (!(typeof mudar_ac != 'undefined')) return [3 /*break*/, 18];
+                                _a.label = 14;
+                            case 14:
+                                _a.trys.push([14, 16, , 17]);
+                                params3 = {
                                     ExpressionAttributeNames: {
                                         "#AC": "AC"
                                     },
@@ -718,30 +703,30 @@ app.get('/', function (req, res) {
                                     TableName: "ar_condicionado_sala",
                                     UpdateExpression: "SET  #AC = :t"
                                 };
-                                return [4 /*yield*/, dbclient.send(new UpdateItemCommand(params_6))];
-                            case 11:
+                                return [4 /*yield*/, dbclient.send(new UpdateItemCommand(params3))];
+                            case 15:
                                 data = _a.sent();
-                                return [3 /*break*/, 13];
-                            case 12:
-                                err_4 = _a.sent();
-                                console.log("Error", err_4);
-                                return [3 /*break*/, 13];
-                            case 13:
+                                return [3 /*break*/, 17];
+                            case 16:
+                                err_5 = _a.sent();
+                                console.log("Error", err_5);
+                                return [3 /*break*/, 17];
+                            case 17:
                                 atualizar_ac = 1;
-                                _a.label = 14;
-                            case 14:
+                                _a.label = 18;
+                            case 18:
                                 contagem_de_nodos();
                                 return [2 /*return*/];
                         }
                     });
                 });
             }
-            var params_7, data, params, data_1, err_1, max_of_array, index;
+            var params, data, params1, data, err_1, max_of_array, index;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         if (!(typeof reset_IDM != 'undefined')) return [3 /*break*/, 2];
-                        params_7 = {
+                        params = {
                             ExpressionAttributeNames: {
                                 "#IDM": "IDM"
                             },
@@ -759,13 +744,13 @@ app.get('/', function (req, res) {
                             TableName: "ar_condicionado_sala",
                             UpdateExpression: "SET #IDM = :t"
                         };
-                        return [4 /*yield*/, dbclient.send(new UpdateItemCommand(params_7))];
+                        return [4 /*yield*/, dbclient.send(new UpdateItemCommand(params))];
                     case 1:
                         data = _a.sent();
                         _a.label = 2;
                     case 2:
                         nr_salas = 0;
-                        params = {
+                        params1 = {
                             // Specify which items in the results are returned.
                             FilterExpression: "ROOM_ID > :s ",
                             // Define the expression attribute value, which are substitutes for the values you want to compare.
@@ -779,19 +764,17 @@ app.get('/', function (req, res) {
                         _a.label = 3;
                     case 3:
                         _a.trys.push([3, 5, , 6]);
-                        return [4 /*yield*/, dbclient.send(new ScanCommand(params))];
+                        return [4 /*yield*/, dbclient.send(new ScanCommand(params1))];
                     case 4:
-                        data_1 = _a.sent();
+                        data = _a.sent();
                         IDM_array = [];
                         Room_array = [];
                         show_room_array = [];
-                        data_1.Items.forEach(function (element, index, array) {
-                            //console.log(element.ROOM_ID.N + " (" + element.AC.N + ")");
-                            nr_salas = nr_salas + 1;
+                        data.Items.forEach(function (element, index, array) {
                             Room_array.push(element.ROOM_ID.N);
                             IDM_array.push(element.IDM.N);
                             show_room_array.push(element.show1.N);
-                            return data_1;
+                            return data;
                         });
                         return [3 /*break*/, 6];
                     case 5:
@@ -800,6 +783,7 @@ app.get('/', function (req, res) {
                         return [3 /*break*/, 6];
                     case 6:
                         max_of_array = Math.max.apply(Math, Room_array);
+                        nr_salas = max_of_array;
                         //identificação de que sala deverá ser apresentada inicialmente caso a sala 1 não exista
                         if (sala == 1) {
                             console.log(typeof show_room_array[Room_array.indexOf('' + 1 + '')] == 'undefined');

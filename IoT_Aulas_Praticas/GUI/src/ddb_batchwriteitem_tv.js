@@ -32,7 +32,7 @@ const params = {
   {
       PutRequest: {
           Item: {
-              DEV_ID: { N: "1001" },
+              DEV_ID: { N: "1006" },
               ROOM_ID: { N: "1" },
               ReadWrite: { N: "0" },
               Smoke_Rate: { N: "1" },

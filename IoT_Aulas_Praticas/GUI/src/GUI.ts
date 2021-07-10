@@ -231,7 +231,7 @@ app.get('/', (req, res) => {
 
     if (tipo_msg === 'undefined') {
       string_mensagens+=''
-      //console.log("mensagem recebida não defenida")
+
     }
     else if (tipo_msg === 'string') {
       string_mensagens+='next->'+messages
@@ -242,12 +242,10 @@ app.get('/', (req, res) => {
     }
     }
 
-    //console.log("tipo_dados",tipo_dados)
-    //console.log("dados_sel",dados_sel)
 
     if (tipo_dados === 'undefined') {
       
-      //console.log("mensagem recebida não defenida")
+
     }
     else if (tipo_dados === 'string') {
       for (let index = 0; index < nr_nodos; index++) {      
@@ -289,7 +287,7 @@ app.get('/', (req, res) => {
 
       if(typeof reset_IDM!='undefined'){
         
-        const params = {
+        var params = {
           ExpressionAttributeNames: {
           "#IDM": "IDM",
         
@@ -309,13 +307,13 @@ app.get('/', (req, res) => {
           UpdateExpression: "SET #IDM = :t"
         };
       //console.log("fez update")
-      const data = await dbclient.send(new UpdateItemCommand(params));
+      var data = await dbclient.send(new UpdateItemCommand(params));
 
       }
 
 
       nr_salas=0;
-      const params = {
+      var params1 = {
         // Specify which items in the results are returned.
         FilterExpression: "ROOM_ID > :s ",
         // Define the expression attribute value, which are substitutes for the values you want to compare.
@@ -329,13 +327,11 @@ app.get('/', (req, res) => {
         TableName: "ar_condicionado_sala",
       };
       try {
-        const data = await dbclient.send(new ScanCommand(params));
+        var data = await dbclient.send(new ScanCommand(params1));
         IDM_array=[]
         Room_array=[]
         show_room_array=[]
         data.Items.forEach(function (element, index, array) {
-          //console.log(element.ROOM_ID.N + " (" + element.AC.N + ")");
-          nr_salas=nr_salas+1;
           
           Room_array.push(element.ROOM_ID.N)
           IDM_array.push(element.IDM.N)
@@ -347,6 +343,7 @@ app.get('/', (req, res) => {
       }
 
       var max_of_array = Math.max.apply(Math, Room_array);
+      nr_salas=max_of_array
       //identificação de que sala deverá ser apresentada inicialmente caso a sala 1 não exista
       if(sala==1){
         console.log(typeof show_room_array[Room_array.indexOf(''+1+'')]=='undefined');
@@ -374,7 +371,7 @@ app.get('/', (req, res) => {
       var sala_destino=req.query.sala_destino
 //-----------------remoção de um nodo da base de dados-------------------
       if(remove_node=="remover"){
-        const params = {
+        var params = {
           Key: {
            "DEV_ID": {
              N: ""+dev_id+""
@@ -383,22 +380,20 @@ app.get('/', (req, res) => {
           TableName: "configuration"
          };
         
-        const run = async () => {
           try {
-            const data = await dbclient.send(new DeleteItemCommand(params));
+            var data = await dbclient.send(new DeleteItemCommand(params));
             //console.log("Success - item deleted", data);
             //return data;
           } catch (err) {
             console.log("Error", err);
           }
-        };
-        run();
+
         sala_anterior=0;
       }
       else{
       try {
         
-            const params = {
+        var params1 = {
               ExpressionAttributeNames: {
               "#SR": "Smoke_Rate",
               "#TR": "TempHum_Rate",
@@ -430,7 +425,7 @@ app.get('/', (req, res) => {
               UpdateExpression: "SET #SR = :y, #TR = :t, #RI = :z, #RW = :w"
             };
           //console.log(params)
-          const data = await dbclient.send(new UpdateItemCommand(params));
+          var data = await dbclient.send(new UpdateItemCommand(params1));
           //console.log("Success - item added or updated", data);
           //return data;
 
@@ -441,7 +436,7 @@ app.get('/', (req, res) => {
             
             try {
   
-              const params1 = {
+              var params2 = {
                   ExpressionAttributeNames: {
                   "#S": "show1",
                 
@@ -462,7 +457,7 @@ app.get('/', (req, res) => {
                   UpdateExpression: "SET #S = :y"
                 };
               console.log(params1)
-              const data1 = await dbclient.send(new UpdateItemCommand(params1));
+              var data1 = await dbclient.send(new UpdateItemCommand(params2));
               //console.log("Success - item added or updated", data);
               //return data1;
               show_room_array[Room_array.indexOf(''+sala_destino+'')]=1
@@ -483,7 +478,7 @@ app.get('/', (req, res) => {
 
       try {
         
-        const params = {
+        var params3 = {
           ExpressionAttributeNames: {
           "#AC": "AC",
         
@@ -503,7 +498,7 @@ app.get('/', (req, res) => {
           UpdateExpression: "SET  #AC = :t"
         };
       //console.log(params)
-      const data = await dbclient.send(new UpdateItemCommand(params));
+      var data = await dbclient.send(new UpdateItemCommand(params3));
       //console.log("Success - item added or updated", data);
       //return data;
     } catch (err) {
@@ -531,15 +526,12 @@ app.get('/', (req, res) => {
 
           console.log("correu função no reload")
 
-
-          if(1){
-
             id_array=[];
             smoke_array=[]
             temp_array=[]
 
             // Set the parameters
-            const params = {
+            var params = {
               // Specify which items in the results are returned.
               FilterExpression: "ROOM_ID = :s ",
               // Define the expression attribute value, which are substitutes for the values you want to compare.
@@ -554,7 +546,7 @@ app.get('/', (req, res) => {
             };
 
             try {
-              const data = await dbclient.send(new ScanCommand(params));
+              var data = await dbclient.send(new ScanCommand(params));
               data.Items.forEach(function (element, index, array) {
                 
                 //console.log(element.DEV_ID.N);
@@ -571,7 +563,7 @@ app.get('/', (req, res) => {
 
               try {
   
-                const params1 = {
+                var params1 = {
                     ExpressionAttributeNames: {
                     "#S": "show1",
                   
@@ -592,7 +584,7 @@ app.get('/', (req, res) => {
                     UpdateExpression: "SET #S = :y"
                   };
                 console.log(params1)
-                const data1 = await dbclient.send(new UpdateItemCommand(params1));
+                var data1 = await dbclient.send(new UpdateItemCommand(params1));
                 //console.log("Success - item added or updated", data);
                 //return data1;
                 show_room_array[Room_array.indexOf(''+sala+'')]=0
@@ -607,7 +599,7 @@ app.get('/', (req, res) => {
                 }
               }
 
-              const params = {
+              var params = {
                 // Specify which items in the results are returned.
                 FilterExpression: "ROOM_ID = :s ",
                 // Define the expression attribute value, which are substitutes for the values you want to compare.
@@ -622,7 +614,7 @@ app.get('/', (req, res) => {
               };
   
               try {
-                const data = await dbclient.send(new ScanCommand(params));
+                var data = await dbclient.send(new ScanCommand(params));
                 data.Items.forEach(function (element, index, array) {
                   
                   //console.log(element.DEV_ID.N);
@@ -700,10 +692,10 @@ app.get('/', (req, res) => {
               atualizar_ac=1
 
 
-          }
+          
           
 
-          const params = {
+          var params = {
             // Specify which items in the results are returned.
             FilterExpression: "ROOM_ID = :s ",
             // Define the expression attribute value, which are substitutes for the values you want to compare.
@@ -718,7 +710,7 @@ app.get('/', (req, res) => {
           };
           
           try {
-            const data = await dbclient.send(new ScanCommand(params));
+            var data = await dbclient.send(new ScanCommand(params));
             data.Items.forEach(function (element, index, array) {
 
 
@@ -770,7 +762,7 @@ app.get('/', (req, res) => {
 
           if(atualizar_ac==1){
 
-            const params = {
+            var params4 = {
               KeyConditionExpression: "ROOM_ID = :s ",
             
               ExpressionAttributeValues: {
@@ -782,7 +774,7 @@ app.get('/', (req, res) => {
             };
     
             try {
-              const results = await dbclient.send(new QueryCommand(params));
+              var results = await dbclient.send(new QueryCommand(params4));
               results.Items.forEach(function (element, index, array) {
                 
                 ac_ativado=element.AC.N

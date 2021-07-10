@@ -74,8 +74,7 @@ function mostrar_remover(i){
 //funçao salas coloca os links para as várias salas do lado esquerdo do ecrã
 function salas(room_array,idm_array,show_room){
     var text_salas=''
-    //console.log(room_array)
-    //console.log(show_room)
+
     var max_of_array = Math.max.apply(Math, room_array);
 
     for (let i = 1; i <= max_of_array; i++) {
@@ -102,8 +101,6 @@ function nodos(){
     var print1=''
     var print11=''
     var print21=''
-    //console.log("nodos a mostrar")
-    //console.log(nodos_mostrar)
     for (let i = 0; i < nr_nodos; i++) {
 
       if (nodos_mostrar.includes(i+1)){
@@ -229,6 +226,7 @@ app.get('/', (req, res) => {
     
     var tipo_msg = typeof messages;
 
+
     if (tipo_msg === 'undefined') {
       string_mensagens+=''
 
@@ -285,6 +283,7 @@ app.get('/', (req, res) => {
     //-----------------------contagem do número de salas presentes na base de dados----------
     async function contagem_de_salas() {
 
+      //aqui realizo a operação de colocar o IDM a 0  na base de dados
       if(typeof reset_IDM!='undefined'){
         
         var params = {
@@ -302,17 +301,17 @@ app.get('/', (req, res) => {
             N: ""+sala+""
             }
           }, 
-          //ReturnValues: "ALL_NEW", 
           TableName: "ar_condicionado_sala", 
           UpdateExpression: "SET #IDM = :t"
         };
-      //console.log("fez update")
+
       var data = await dbclient.send(new UpdateItemCommand(params));
 
       }
 
 
       nr_salas=0;
+      //vou procurar por todas as salas registadas na base de dados
       var params1 = {
         // Specify which items in the results are returned.
         FilterExpression: "ROOM_ID > :s ",
@@ -344,7 +343,7 @@ app.get('/', (req, res) => {
 
       var max_of_array = Math.max.apply(Math, Room_array);
       nr_salas=max_of_array
-      //identificação de que sala deverá ser apresentada inicialmente caso a sala 1 não exista
+      //identificação de que sala deverá ser apresentada inicialmente, por default é a 1 mas poderá não existir
       if(sala==1){
         console.log(typeof show_room_array[Room_array.indexOf(''+1+'')]=='undefined');
         if(show_room_array[Room_array.indexOf(''+1+'')]==0  || typeof show_room_array[Room_array.indexOf(''+1+'')]=='undefined'){
@@ -365,8 +364,6 @@ app.get('/', (req, res) => {
       var temp_rate=req.query.freq_tem
       var remove_node=req.query.remove_node
 
-      console.log("remover nodo")
-      console.log(remove_node)
 
       var sala_destino=req.query.sala_destino
 //-----------------remoção de um nodo da base de dados-------------------
@@ -382,8 +379,7 @@ app.get('/', (req, res) => {
         
           try {
             var data = await dbclient.send(new DeleteItemCommand(params));
-            //console.log("Success - item deleted", data);
-            //return data;
+
           } catch (err) {
             console.log("Error", err);
           }
@@ -392,7 +388,7 @@ app.get('/', (req, res) => {
       }
       else{
       try {
-        
+        //update das defenições de um nodo para a base de dados
         var params1 = {
               ExpressionAttributeNames: {
               "#SR": "Smoke_Rate",
@@ -420,19 +416,14 @@ app.get('/', (req, res) => {
                 N: ""+dev_id+""
                 }
               }, 
-              //ReturnValues: "ALL_NEW", 
+
               TableName: "configuration", 
               UpdateExpression: "SET #SR = :y, #TR = :t, #RI = :z, #RW = :w"
             };
-          //console.log(params)
           var data = await dbclient.send(new UpdateItemCommand(params1));
-          //console.log("Success - item added or updated", data);
-          //return data;
 
-          
-          
+          // tenho de colocar a variável show1 a 1 no caso de coloquemos o nodo numa sala previamente vazia
           if(show_room_array[Room_array.indexOf(''+sala_destino+'')]=='0'){
-            //console.log("entrou")
             
             try {
   
@@ -458,8 +449,6 @@ app.get('/', (req, res) => {
                 };
               console.log(params1)
               var data1 = await dbclient.send(new UpdateItemCommand(params2));
-              //console.log("Success - item added or updated", data);
-              //return data1;
               show_room_array[Room_array.indexOf(''+sala_destino+'')]=1
             } catch (err) {
               console.log("Error", err);
@@ -474,6 +463,7 @@ app.get('/', (req, res) => {
         
       }
     }
+    //atualização da coluna AC para uma dada sala na base de dados
     if (typeof mudar_ac!='undefined') {
 
       try {
@@ -493,14 +483,13 @@ app.get('/', (req, res) => {
             N: ""+sala+""
             }
           }, 
-          //ReturnValues: "ALL_NEW", 
+
           TableName: "ar_condicionado_sala", 
           UpdateExpression: "SET  #AC = :t"
         };
-      //console.log(params)
+
       var data = await dbclient.send(new UpdateItemCommand(params3));
-      //console.log("Success - item added or updated", data);
-      //return data;
+
     } catch (err) {
       console.log("Error", err);
     }
@@ -549,16 +538,16 @@ app.get('/', (req, res) => {
               var data = await dbclient.send(new ScanCommand(params));
               data.Items.forEach(function (element, index, array) {
                 
-                //console.log(element.DEV_ID.N);
+
                 id_array.push(element.DEV_ID.N)
                 smoke_array.push(element.Smoke_Rate.N)
                 temp_array.push(element.TempHum_Rate.N)
-                //nr_resultados=nr_resultados+1;
-                //return data;
+ 
               });
             } catch (err) {
               console.log("Error", err);
             }
+            //devo colocar o show1  a 0 quando deixo uma sala vazia
             if(id_array.length==0){
 
               try {
@@ -585,8 +574,7 @@ app.get('/', (req, res) => {
                   };
                 console.log(params1)
                 var data1 = await dbclient.send(new UpdateItemCommand(params1));
-                //console.log("Success - item added or updated", data);
-                //return data1;
+
                 show_room_array[Room_array.indexOf(''+sala+'')]=0
               } catch (err) {
                 console.log("Error", err);
@@ -598,7 +586,7 @@ app.get('/', (req, res) => {
                   break
                 }
               }
-
+              //apos  colocar o show1 a 0  tenho de mudar de sala e fazer uma pesquisa para a nova sala
               var params = {
                 // Specify which items in the results are returned.
                 FilterExpression: "ROOM_ID = :s ",
@@ -617,12 +605,10 @@ app.get('/', (req, res) => {
                 var data = await dbclient.send(new ScanCommand(params));
                 data.Items.forEach(function (element, index, array) {
                   
-                  //console.log(element.DEV_ID.N);
                   id_array.push(element.DEV_ID.N)
                   smoke_array.push(element.Smoke_Rate.N)
                   temp_array.push(element.TempHum_Rate.N)
-                  //nr_resultados=nr_resultados+1;
-                  //return data;
+
                 });
               } catch (err) {
                 console.log("Error", err);
@@ -630,7 +616,7 @@ app.get('/', (req, res) => {
 
             }
             
-
+            //organização dos nodos pela sua ordem numérica
             var old_id_array = id_array.slice();
 
             id_array = id_array.sort((a, b) => a - b);
@@ -668,10 +654,7 @@ app.get('/', (req, res) => {
             smoke_array=new_smoke_array
             temp_array=new_temp_array
           
-            //console.log("pre processing")
-            //console.log(id_array)
-            //console.log(smoke_array)
-            //console.log(temp_array)
+
             
             nr_nodos=id_array.length
 
@@ -694,7 +677,7 @@ app.get('/', (req, res) => {
 
           
           
-
+          //aqui realizo o scan dos dados dos vários sensores
           var params = {
             // Specify which items in the results are returned.
             FilterExpression: "ROOM_ID = :s ",
@@ -730,12 +713,7 @@ app.get('/', (req, res) => {
           } catch (err) {
             console.log("Error", err);
           }
-          console.log("pre processing")
-          console.log(time_stamps)
-          console.log(ids_array)
-          console.log(smokes_array)
-          console.log(hum_array)
-          console.log(temps_array)
+
 
           var date_stamps=[]
           for (let index = 0; index < time_stamps.length; index++) {
@@ -750,15 +728,6 @@ app.get('/', (req, res) => {
                                 ":"+date.getSeconds())
           }
 
-          /*var date = new Date(1625419711.2714403*1000);
-              
-              console.log("Date: "+date.getDate()+
-                                "/"+(date.getMonth()+1)+
-                                "/"+date.getFullYear()+
-                                " "+date.getHours()+
-                                ":"+date.getMinutes()+
-                                ":"+date.getSeconds())*/
-          //console.log(date_stamps)
 
           if(atualizar_ac==1){
 
@@ -789,7 +758,7 @@ app.get('/', (req, res) => {
 
           }
 //-----------------------------------------------------------------------------------------------------//
-          //console.log(id_array)
+          //vou organizar os dados temporalmente e selecionar o último
           for (let index1 = 0; index1 < id_array.length; index1++){
 
             timestamp_anterior=0
@@ -811,8 +780,6 @@ app.get('/', (req, res) => {
             
           }
           
-          console.log(time_stamps[indice])
-          //console.log(index_array)
         
           for (let index = 0; index < index_array.length; index++) {
 
@@ -832,12 +799,6 @@ app.get('/', (req, res) => {
         
             
           }
-
-          console.log("pos processing")
-          //console.log(date_stamps)
-          //console.log(smoke_show)
-          //console.log(hum_show)
-          //console.log(temp_show)
 
           array_fumo=[]
 
@@ -860,15 +821,11 @@ app.get('/', (req, res) => {
                 }
                 
               }
-            console.log(array_time_index)
             
             var old_array_time_index=array_time_index.slice()
 
             array_time_index = array_time_index.sort((a, b) => a - b);
             
-            
-
-            console.log(array_time_index)
             var tempo_inicio=0;
             var i=array_smoke_index.length-1
 
@@ -890,7 +847,6 @@ app.get('/', (req, res) => {
             
           }
 
-          console.log(array_fumo)
           
     //--------------------------------print da página HTML------------------------------------------
     
@@ -1112,7 +1068,6 @@ app.get('/', (req, res) => {
             
             var nr_nodos=`+nr_nodos+`
             
-            console.log(get)
 
             //função que trata dos dados após clicarmos no botão de enviar
             function validateFormOnSubmit(theForm) {
@@ -1148,15 +1103,9 @@ app.get('/', (req, res) => {
 
                 get+='&message_number='+dateTime+'Foi realizada uma mudança de configuração do '+dev_id+'&pedido_update_id='+dev_id+'&freq_tem='+freq_tem+'&freq_fum='+freq_fum+'&sala_destino='+sala+'&remove_node='+remove_value
 
-                location.replace('http://localhost:8080/?sala='+i+''+get+''+mostrar)
-                console.log("correu location replace")
+                location.replace('http://localhost:8080/?sala='+i+''+get)
             
                 
-
-
-
-
-               // console.log(time)
                 return false;
             }
 
@@ -1276,9 +1225,6 @@ app.get('/', (req, res) => {
     
                 sala=titulo_sep[1];
     
-                //console.log(titulo_sep[1])
-                console.log(sala)
-    
                 if(document.getElementById('ar_condicionado').innerHTML=="Desactivar Ar Condicionado"){
         
                     document.getElementById('ar_condicionado').innerHTML="Ativar Ar Condicionado"
@@ -1295,7 +1241,6 @@ app.get('/', (req, res) => {
                     var entry = document.createElement('li');
                     entry.appendChild(document.createTextNode(dateTime));
                     entry.appendChild(document.createTextNode('Ar condicionado desativado sala: '));
-                    //console.log(i)
                     entry.appendChild(document.createTextNode(sala));
                     list.appendChild(entry);
                     
@@ -1319,15 +1264,14 @@ app.get('/', (req, res) => {
                     var entry = document.createElement('li');
                     entry.appendChild(document.createTextNode(dateTime));
                     entry.appendChild(document.createTextNode('Ar condicionado ativado sala: '));
-                    console.log(sala)
+
                     entry.appendChild(document.createTextNode(sala));
                     list.appendChild(entry);
 
                     get+='&message_number='+dateTime+'Ar condicionado ativado sala: '+sala+'&mudar_cond='+1
 
                     location.replace('http://localhost:8080/?sala='+sala+''+get+''+mostrar)
-                    
-                    console.log(entry)
+
                 }         
             }
 
@@ -1365,8 +1309,6 @@ app.get('/', (req, res) => {
                 location.replace('http://localhost:8080/?sala='+i+''+get+''+mostrar)
 
 
-                
-                console.log(get)
             }
 
             //funcao que aumenta o intervalo de reload temporariamente quando o utilizador interage com o formulário
@@ -1374,7 +1316,6 @@ app.get('/', (req, res) => {
 
               clearInterval(intervalId);
               intervalId = setInterval(reload, 20000);
-              console.log("reload to timer")
 
             }
             

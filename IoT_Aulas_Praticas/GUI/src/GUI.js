@@ -37,7 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var express = require("express");
-var _a = require("@aws-sdk/client-dynamodb"), DynamoDBClient = _a.DynamoDBClient, ScanCommand = _a.ScanCommand, QueryCommand = _a.QueryCommand, UpdateItemCommand = _a.UpdateItemCommand, DeleteItemCommand = _a.DeleteItemCommand;
+var _a = require("@aws-sdk/client-dynamodb"), DynamoDBClient = _a.DynamoDBClient, ScanCommand = _a.ScanCommand, QueryCommand = _a.QueryCommand, UpdateItemCommand = _a.UpdateItemCommand, DeleteItemCommand = _a.DeleteItemCommand, BatchWriteItemCommand = _a.BatchWriteItemCommand;
 // Set the AWS Region
 var REGION = "eu-west-1"; //e.g. "us-east-1"
 //var tools = require('./function.js');
@@ -91,8 +91,6 @@ function mostrar_remover(i) {
 //funçao salas coloca os links para as várias salas do lado esquerdo do ecrã
 function salas(room_array, idm_array, show_room) {
     var text_salas = '';
-    //console.log(room_array)
-    //console.log(show_room)
     var max_of_array = Math.max.apply(Math, room_array);
     for (var i = 1; i <= max_of_array; i++) {
         if (show_room[room_array.indexOf('' + i + '')] == '1') {
@@ -113,8 +111,6 @@ function nodos() {
     var print1 = '';
     var print11 = '';
     var print21 = '';
-    //console.log("nodos a mostrar")
-    //console.log(nodos_mostrar)
     for (var i = 0; i < nr_nodos; i++) {
         if (nodos_mostrar.includes(i + 1)) {
             print2 = 'mostrar';
@@ -188,8 +184,6 @@ function message_list(array_fumo) {
     var array_mensagens = string_mensagens.split('next->');
     for (var index = 0; index < array_fumo.length; index++) {
         x += '<li style="color:red">' + array_fumo[index] + '</li>';
-        console.log("entrou");
-        console.log(array_fumo);
     }
     for (var index = 1; index < array_mensagens.length; index++) {
         x += '<li>' + array_mensagens[index] + '</li>';
@@ -267,7 +261,7 @@ app.get('/', function (req, res) {
                     //--------------------------------------------------inicio das funções async------------------------------------
                     function contagem_de_nodos() {
                         return __awaiter(this, void 0, void 0, function () {
-                            var params, data, err_6, params1, data1, err_7, index, params, data, err_8, old_id_array, changes_array, index, index1, new_smoke_array, new_temp_array, index, index1, index, params, data, err_9, date_stamps, index, date, params4, results, err_10, index1, index, index, index, id_fumo, array_time_index, array_smoke_index, index1, old_array_time_index, tempo_inicio, i, date, tempo_fumo;
+                            var params, data, err_7, params1, data1, err_8, index, params, data, err_9, old_id_array, changes_array, index, index1, new_smoke_array, new_temp_array, index, index1, index, params, data, err_10, date_stamps, index, date, params4, results, err_11, index1, index, index, index, id_fumo, array_time_index, array_smoke_index, index1, old_array_time_index, tempo_inicio, i, date, tempo_fumo;
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
                                     case 0:
@@ -305,17 +299,14 @@ app.get('/', function (req, res) {
                                     case 2:
                                         data = _a.sent();
                                         data.Items.forEach(function (element, index, array) {
-                                            //console.log(element.DEV_ID.N);
                                             id_array.push(element.DEV_ID.N);
                                             smoke_array.push(element.Smoke_Rate.N);
                                             temp_array.push(element.TempHum_Rate.N);
-                                            //nr_resultados=nr_resultados+1;
-                                            //return data;
                                         });
                                         return [3 /*break*/, 4];
                                     case 3:
-                                        err_6 = _a.sent();
-                                        console.log("Error", err_6);
+                                        err_7 = _a.sent();
+                                        console.log("Error", err_7);
                                         return [3 /*break*/, 4];
                                     case 4:
                                         if (!(id_array.length == 0)) return [3 /*break*/, 12];
@@ -343,13 +334,11 @@ app.get('/', function (req, res) {
                                         return [4 /*yield*/, dbclient.send(new UpdateItemCommand(params1))];
                                     case 6:
                                         data1 = _a.sent();
-                                        //console.log("Success - item added or updated", data);
-                                        //return data1;
                                         show_room_array[Room_array.indexOf('' + sala + '')] = 0;
                                         return [3 /*break*/, 8];
                                     case 7:
-                                        err_7 = _a.sent();
-                                        console.log("Error", err_7);
+                                        err_8 = _a.sent();
+                                        console.log("Error", err_8);
                                         return [3 /*break*/, 8];
                                     case 8:
                                         for (index = 1; index <= max_of_array; index++) {
@@ -376,17 +365,14 @@ app.get('/', function (req, res) {
                                     case 10:
                                         data = _a.sent();
                                         data.Items.forEach(function (element, index, array) {
-                                            //console.log(element.DEV_ID.N);
                                             id_array.push(element.DEV_ID.N);
                                             smoke_array.push(element.Smoke_Rate.N);
                                             temp_array.push(element.TempHum_Rate.N);
-                                            //nr_resultados=nr_resultados+1;
-                                            //return data;
                                         });
                                         return [3 /*break*/, 12];
                                     case 11:
-                                        err_8 = _a.sent();
-                                        console.log("Error", err_8);
+                                        err_9 = _a.sent();
+                                        console.log("Error", err_9);
                                         return [3 /*break*/, 12];
                                     case 12:
                                         old_id_array = id_array.slice();
@@ -411,10 +397,6 @@ app.get('/', function (req, res) {
                                         }
                                         smoke_array = new_smoke_array;
                                         temp_array = new_temp_array;
-                                        //console.log("pre processing")
-                                        //console.log(id_array)
-                                        //console.log(smoke_array)
-                                        //console.log(temp_array)
                                         nr_nodos = id_array.length;
                                         if (sala_anterior != sala) {
                                             nodos_mostrar = [];
@@ -452,16 +434,10 @@ app.get('/', function (req, res) {
                                         });
                                         return [3 /*break*/, 16];
                                     case 15:
-                                        err_9 = _a.sent();
-                                        console.log("Error", err_9);
+                                        err_10 = _a.sent();
+                                        console.log("Error", err_10);
                                         return [3 /*break*/, 16];
                                     case 16:
-                                        console.log("pre processing");
-                                        console.log(time_stamps);
-                                        console.log(ids_array);
-                                        console.log(smokes_array);
-                                        console.log(hum_array);
-                                        console.log(temps_array);
                                         date_stamps = [];
                                         for (index = 0; index < time_stamps.length; index++) {
                                             date = new Date(time_stamps[index] * 1000);
@@ -493,12 +469,12 @@ app.get('/', function (req, res) {
                                         });
                                         return [3 /*break*/, 20];
                                     case 19:
-                                        err_10 = _a.sent();
-                                        console.error(err_10);
+                                        err_11 = _a.sent();
+                                        console.error(err_11);
                                         return [3 /*break*/, 20];
                                     case 20:
                                         //-----------------------------------------------------------------------------------------------------//
-                                        //console.log(id_array)
+                                        //vou organizar os dados temporalmente e selecionar o último
                                         for (index1 = 0; index1 < id_array.length; index1++) {
                                             timestamp_anterior = 0;
                                             indice = -1;
@@ -512,8 +488,6 @@ app.get('/', function (req, res) {
                                             }
                                             index_array.push(indice);
                                         }
-                                        console.log(time_stamps[indice]);
-                                        //console.log(index_array)
                                         for (index = 0; index < index_array.length; index++) {
                                             if (index_array[index] == -1) {
                                                 smoke_show.push('undefined');
@@ -528,11 +502,6 @@ app.get('/', function (req, res) {
                                                 date_show.push(date_stamps[index_array[index]]);
                                             }
                                         }
-                                        console.log("pos processing");
-                                        //console.log(date_stamps)
-                                        //console.log(smoke_show)
-                                        //console.log(hum_show)
-                                        //console.log(temp_show)
                                         array_fumo = [];
                                         for (index = 0; index < index_array.length; index++) {
                                             id_fumo = '';
@@ -546,10 +515,8 @@ app.get('/', function (req, res) {
                                                         array_smoke_index.push(smokes_array[index1]);
                                                     }
                                                 }
-                                                console.log(array_time_index);
                                                 old_array_time_index = array_time_index.slice();
                                                 array_time_index = array_time_index.sort(function (a, b) { return a - b; });
-                                                console.log(array_time_index);
                                                 tempo_inicio = 0;
                                                 i = array_smoke_index.length - 1;
                                                 while (array_smoke_index[old_array_time_index.indexOf(array_time_index[i])] == '1' || i >= 0) {
@@ -562,24 +529,21 @@ app.get('/', function (req, res) {
                                                 array_fumo.push(tempo_fumo + '⇨começou a registar fumo no nodo: ' + id_fumo);
                                             }
                                         }
-                                        console.log(array_fumo);
                                         //--------------------------------print da página HTML------------------------------------------
-                                        res.send("<html>\n        <head>\n        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n        <meta charset=\"UTF-8\">\n        <style>\n        \n        .sidenav {\n          height: 100%;\n          width: 160px;\n          position: fixed;\n          z-index: 1;\n          top: 0;\n          left: 0;\n          background-color: #111;\n          overflow-x: hidden;\n          padding-top: 20px;\n        }\n        \n        .sidenav k {\n          padding: 6px 8px 6px 16px;\n          text-decoration: none;\n          font-size: 25px;\n          color: #818181;\n          display: block;\n        }\n        \n        .sidenav k:hover {\n          color: #f1f1f1;\n        }\n        .sidenav j {\n          padding: 6px 8px 6px 16px;\n          text-decoration: none;\n          font-size: 25px;\n          color: red;\n          display: block;\n        }\n        \n        .sidenav j:hover {\n          color: #f1f1f1;\n        }\n        \n        .main {\n          margin-left: 160px; /* Same as the width of the sidenav */\n          font-size: 28px; /* Increased text to enable scrolling */\n          padding: 0px 10px;\n        }\n        \n        @media screen and (max-height: 450px) {\n          .sidenav {padding-top: 15px;}\n          .sidenav a {font-size: 18px;}\n        }\n        ul.menu li {\n          display:inline;\n        }\n        ul#lista li {\n          display: list-item;\n        }\n        \n        ul.lista_dados li {\n          display: list-item;\n        }\n        \n        ul.lista_def li {\n          display: list-item;\n        }\n        \n        article {\n          float: left;\n          padding: 20px;\n          width: 50%;\n          background-color: #f1f1f1;\n         \n        \n        }\n        \n        * {\n          box-sizing: border-box;\n        }\n        \n        /* Create two columns/boxes that floats next to each other */\n        nav {\n          float: left;\n          width: 50%;\n          background: #ccc;\n          padding: 20px;\n          \n        }\n        \n        nav ul {\n          list-style-type: none;\n          padding: 0;\n        }\n        \n        .def:hover {\n            opacity: 0.5;\n        }\n        .mostrar{\n            display: none;\n        }\n        /*------------------------------progress bar stuff--------------------------*/\n        .meter {\n          box-sizing: content-box;\n          height: 20px; /* Can be anything */\n          width: 40%;\n          position: relative;\n          margin: -1.5% 0 20px 0; /* Just for demo spacing */\n          background: #555;\n          border-radius: 25px;\n          padding: 10px;\n          box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.3);\n        }\n        .meter > span {\n          display: block;\n          height: 100%;\n          border-top-right-radius: 8px;\n          border-bottom-right-radius: 8px;\n          border-top-left-radius: 20px;\n          border-bottom-left-radius: 20px;\n          background-color: rgb(43, 194, 83);\n          background-image: linear-gradient(\n            center bottom,\n            rgb(43, 194, 83) 37%,\n            rgb(84, 240, 84) 69%\n          );\n          box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3),\n            inset 0 -2px 6px rgba(0, 0, 0, 0.4);\n          position: relative;\n          overflow: hidden;\n        }\n        .meter > span:after,\n        .animate > span > span {\n          content: \"\";\n          position: absolute;\n          top: 0;\n          left: 0;\n          bottom: 0;\n          right: 0;\n          background-image: linear-gradient(\n            -45deg,\n            rgba(255, 255, 255, 0.2) 25%,\n            transparent 25%,\n            transparent 50%,\n            rgba(255, 255, 255, 0.2) 50%,\n            rgba(255, 255, 255, 0.2) 75%,\n            transparent 75%,\n            transparent\n          );\n          z-index: 1;\n          background-size: 50px 50px;\n          animation: move 2s linear infinite;\n          border-top-right-radius: 8px;\n          border-bottom-right-radius: 8px;\n          border-top-left-radius: 20px;\n          border-bottom-left-radius: 20px;\n          overflow: hidden;\n        }\n\n        .animate > span:after {\n          display: none;\n        }\n\n        @keyframes move {\n          0% {\n            background-position: 0 0;\n          }\n          100% {\n            background-position: 50px 50px;\n          }\n        }\n\n        .orange > span {\n          background-image: linear-gradient(#f1a165, #f36d0a);\n        }\n\n        .red > span {\n          background-image: linear-gradient(#f0a3a3, #f42323);\n        }\n\n        .nostripes > span > span,\n        .nostripes > span::after {\n          background-image: none;\n        }\n\n        /*---------------------------checkbox settings ---------------*/\n        input[type=checkbox]\n        {\n          /* Double-sized Checkboxes */\n          -ms-transform: scale(2); /* IE */\n          -moz-transform: scale(2); /* FF */\n          -webkit-transform: scale(2); /* Safari and Chrome */\n          -o-transform: scale(2); /* Opera */\n          transform: scale(2);\n          padding: 10px;\n        }\n\n        /* Might want to wrap a span around your checkbox text */\n        .checkboxtext\n        {\n          /* Checkbox text */\n          font-size: 110%;\n          display: inline;\n        }\n\n        body {\n          background: #333;\n          font-family: system-ui, sans-serif;\n        }\n        </style>\n\n        <script type=\"text/javascript\">\n             \n            var get='';\n\n            var mostrar='';\n            \n            var nr_nodos=" + nr_nodos + "\n            \n            console.log(get)\n\n            //fun\u00E7\u00E3o que trata dos dados ap\u00F3s clicarmos no bot\u00E3o de enviar\n            function validateFormOnSubmit(theForm) {\n\n                var titulo=document.getElementById('titulo').innerHTML;\n    \n                var titulo_sep = titulo.split(\" \");\n                var remove_value=''\n                i=titulo_sep[1];\n        \n                var sala = theForm.sala.value;\n                var  freq_tem= theForm.freq_tem.value;\n                var freq_fum = theForm.freq_fum.value;\n                var dev_id = theForm.dev_id.value;\n              \n                if(document.getElementById(''+dev_id+'').checked) {\n                  remove_value=\"remover\";\n                } \n\n                var today = new Date();\n    \n                var date = today.getDate()+'/'+(today.getMonth()+1)+'/'+today.getFullYear();\n    \n                var time = today.getHours() + \":\" + today.getMinutes() + \":\" + today.getSeconds();\n    \n                var dateTime = date+' '+time+'\u21E8';\n    \n                var list = document.getElementById('lista');\n                var entry = document.createElement('li');\n                entry.appendChild(document.createTextNode(dateTime));\n                entry.appendChild(document.createTextNode('Foi realizada uma mudan\u00E7a de configura\u00E7\u00E3o do '+dev_id+''));\n                list.appendChild(entry);\n\n                get+='&message_number='+dateTime+'Foi realizada uma mudan\u00E7a de configura\u00E7\u00E3o do '+dev_id+'&pedido_update_id='+dev_id+'&freq_tem='+freq_tem+'&freq_fum='+freq_fum+'&sala_destino='+sala+'&remove_node='+remove_value\n\n                location.replace('http://localhost:8080/?sala='+i+''+get+''+mostrar)\n                console.log(\"correu location replace\")\n            \n                \n\n\n\n\n               // console.log(time)\n                return false;\n            }\n\n            window.addEventListener('scroll',function() {\n              //When scroll change, you save it on localStorage.\n              localStorage.setItem('scrollPosition',window.scrollY);\n          },false);\n        \n        </script>\n        \n        </head>\n        <body>\n        \n        <!---------------------------MENU LATERAL----------------------------->\n        \n        <div id=\"menu_lateral\" class=\"sidenav\">\n        " + salas(Room_array, IDM_array, show_room_array) + "\n        </div>\n        \n        <div class=\"main\">\n        \n            <!---------------------------PARTE SUPERIOR----------------------------->\n            <header>\n                  " + titulo() + "<p style=\"color: #eee;\">Indice de manuten\u00E7\u00E3o: " + IDM + "%</p>\n                  <span>\n                  <div class=\"meter red\">\n                    <span style=\"width: " + IDM + "%\"></span>\t\t\t\t\n                  </div>\n                  " + estado_cond() + "\n                  <button onclick=\"confirmar_reset(" + sala + ")\" id=\"reset_IDM\" style=\"margin-left: 15px; padding: 10px;\">Reset IDM </button>\n                  <span/>\n            </header>\n        \n          <section style=\"margin-top: 10px\">\n        \n              <!---------------------------PARTE INTERIOR ESQUERDA----------------------------->\n          <nav id=\"nodos\">\n        \n            " + nodos() + "\n      \n          </nav>\n          <!---------------------------PARTE INTERIOR DIREITA----------------------------->\n          <article>\n            <h1>Registo de acontecimentos:</h1>\n                <ul id=\"lista\" >\n                  " + message_list(array_fumo) + "\n                </ul> \n          </article>\n        </section>\n        \n        </div>\n        \n        <!---------------------------SCRIPTS----------------------------->\n        \n        <script type=\"text/javascript\">\n            \n        //mostrar ou n\u00E3o a interface de mostragem dos dados\n            function mudar_dados(i){\n\n\n                if(document.getElementById('dados'+i).src.indexOf(\"images/white_server.png\") != -1){\n                  document.getElementById('dados'+i).src=\"images/grey_server.png\"\n                }\n                else if(document.getElementById('dados'+i).src.indexOf(\"images/grey_server.png\") != -1){\n                  document.getElementById('dados'+i).src=\"images/grey_server.png\"\n                }\n                else{\n                  document.getElementById('dados'+i).src=\"images/red_server.png\"\n                }\n\n                document.getElementById('def'+i).src=\"images/def_white.png\"\n        \n                document.getElementById('lista_dados'+i).classList.remove('mostrar');\n                document.getElementById('lista_dados'+i).classList.add('lista_dados');\n                document.getElementById('lista_def'+i).classList.remove('lista_def');\n                document.getElementById('lista_def'+i).classList.add('mostrar');\n\n                mostrar+='&mostrar='+i+'sim'\n\n                clearInterval(intervalId);\n                intervalId = setInterval(reload, 4000);\n                console.log(\"reload to timer\")\n                \n            }\n\n            //mostrar ou n\u00E3o a interface de mudan\u00E7a de defeni\u00E7\u00F5es\n            function mudar_def(i){\n\n                if(document.getElementById('dados'+i).src.indexOf(\"images/grey_server.png\") != -1){\n                  document.getElementById('dados'+i).src=\"images/white_server.png\"                \n                }\n                else if(document.getElementById('dados'+i).src.indexOf(\"images/white_server.png\") != -1){\n                  document.getElementById('dados'+i).src=\"images/white_server.png\"\n                }\n                else{\n                  document.getElementById('dados'+i).src=\"images/red_server.png\"\n                }\n                document.getElementById('def'+i).src=\"images/def_grey.png\"\n                document.getElementById('lista_dados'+i).classList.remove('lista_dados');\n                document.getElementById('lista_dados'+i).classList.add('mostrar');\n                document.getElementById('lista_def'+i).classList.remove('mostrar');\n                document.getElementById('lista_def'+i).classList.add('lista_def');\n\n                mostrar+='&mostrar='+i+'nao'\n\n                clearInterval(intervalId);\n                intervalId = setInterval(reload, 4000);\n                console.log(\"reload to timer\")\n            }\n            \n            //fun\u00E7\u00E3o que atua quando procuramos mudar o valor do ar condicionado colocando nas menssagens laterais\n            function mudar_ac(){\n    \n                var titulo=document.getElementById('titulo').innerHTML;\n    \n                var titulo_sep = titulo.split(\" \");\n    \n                sala=titulo_sep[1];\n    \n                //console.log(titulo_sep[1])\n                console.log(sala)\n    \n                if(document.getElementById('ar_condicionado').innerHTML==\"Desactivar Ar Condicionado\"){\n        \n                    document.getElementById('ar_condicionado').innerHTML=\"Ativar Ar Condicionado\"\n        \n                    var today = new Date();\n        \n                    var date = today.getDate()+'/'+(today.getMonth()+1)+'/'+today.getFullYear();\n        \n                    var time = today.getHours() + \":\" + today.getMinutes() + \":\" + today.getSeconds();\n        \n                    var dateTime = date+' '+time+'\u21E8';\n        \n                    var list = document.getElementById('lista');\n                    var entry = document.createElement('li');\n                    entry.appendChild(document.createTextNode(dateTime));\n                    entry.appendChild(document.createTextNode('Ar condicionado desativado sala: '));\n                    //console.log(i)\n                    entry.appendChild(document.createTextNode(sala));\n                    list.appendChild(entry);\n                    \n                    get+='&message_number='+dateTime+'Ar condicionado desativado sala: '+sala+'&mudar_cond='+0\n\n                    location.replace('http://localhost:8080/?sala='+sala+''+get+''+mostrar)\n        \n                }\n                else{\n                    document.getElementById('ar_condicionado').innerHTML=\"Desactivar Ar Condicionado\"\n        \n                    var today = new Date();\n        \n                    var date = today.getDate()+'/'+(today.getMonth()+1)+'/'+today.getFullYear();\n        \n                    var time = today.getHours() + \":\" + today.getMinutes() + \":\" + today.getSeconds();\n        \n                    var dateTime = date+' '+time+'\u21E8';\n        \n                    var list = document.getElementById('lista');\n                    var entry = document.createElement('li');\n                    entry.appendChild(document.createTextNode(dateTime));\n                    entry.appendChild(document.createTextNode('Ar condicionado ativado sala: '));\n                    console.log(sala)\n                    entry.appendChild(document.createTextNode(sala));\n                    list.appendChild(entry);\n\n                    get+='&message_number='+dateTime+'Ar condicionado ativado sala: '+sala+'&mudar_cond='+1\n\n                    location.replace('http://localhost:8080/?sala='+sala+''+get+''+mostrar)\n                    \n                    console.log(entry)\n                }         \n            }\n\n            function confirmar_reset(i){\n\n              if(window.confirm(\"Deseja mesmo dar reset ao IDM da sala:\"+i+\"?\")){\n\n                var today = new Date();\n        \n                var date = today.getDate()+'/'+(today.getMonth()+1)+'/'+today.getFullYear();\n    \n                var time = today.getHours() + \":\" + today.getMinutes() + \":\" + today.getSeconds();\n    \n                var dateTime = date+' '+time+'\u21E8';\n\n                get+='&message_number='+dateTime+'Foi realizado o reset do IDM sala: '+i+''\n\n                location.replace('http://localhost:8080/?sala='+i+''+get+''+'&reset_IDM=true')\n              }\n              \n            }\n            //fun\u00E7\u00E3o que atua quando clicamos para mudar de sala\n            function mudar_sala(i){              \n                sala=i\n       \n                localStorage.removeItem('scrollPosition');\n\n                \n                for (let index = 1; index <= nr_nodos; index++) {\n     \n                  mostrar+='&mostrar='+index+'sim'\n                } \n                                \n                \n                location.replace('http://localhost:8080/?sala='+i+''+get+''+mostrar)\n\n\n                \n                console.log(get)\n            }\n\n            //funcao que aumenta o intervalo de reload temporariamente quando o utilizador interage com o formul\u00E1rio\n            function hold(){\n\n              clearInterval(intervalId);\n              intervalId = setInterval(reload, 20000);\n              console.log(\"reload to timer\")\n\n            }\n            \n            //funcao que atua no reload da p\u00E1gina \n            function reload(){\n\n              var titulo=document.getElementById('titulo').innerHTML;\n    \n              var titulo_sep = titulo.split(\" \");\n  \n              i=titulo_sep[1];\n\n              location.replace('http://localhost:8080/?sala='+i+''+get+''+mostrar)\n\n              \n\n              }\n          \n            //intervalo para dar auto reload \u00E0 janela\n            var intervalId = setInterval(reload, 5000);\n\n            //fun\u00E7\u00E3o para manter o mesmo n\u00EDvel de scroll na p\u00E1gina\n              window.addEventListener('load',function() {\n                if(localStorage.getItem('scrollPosition') !== null)\n                   window.scrollTo(0, localStorage.getItem('scrollPosition'));\n            },false);\n    \n        </script>\n        \n        </body>\n        </html> \n      ");
+                                        res.send("<html>\n        <head>\n        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n        <meta charset=\"UTF-8\">\n        <style>\n        \n        .sidenav {\n          height: 100%;\n          width: 160px;\n          position: fixed;\n          z-index: 1;\n          top: 0;\n          left: 0;\n          background-color: #111;\n          overflow-x: hidden;\n          padding-top: 20px;\n        }\n        \n        .sidenav k {\n          padding: 6px 8px 6px 16px;\n          text-decoration: none;\n          font-size: 25px;\n          color: #818181;\n          display: block;\n        }\n        \n        .sidenav k:hover {\n          color: #f1f1f1;\n        }\n        .sidenav j {\n          padding: 6px 8px 6px 16px;\n          text-decoration: none;\n          font-size: 25px;\n          color: red;\n          display: block;\n        }\n        \n        .sidenav j:hover {\n          color: #f1f1f1;\n        }\n        \n        .main {\n          margin-left: 160px; /* Same as the width of the sidenav */\n          font-size: 28px; /* Increased text to enable scrolling */\n          padding: 0px 10px;\n        }\n        \n        @media screen and (max-height: 450px) {\n          .sidenav {padding-top: 15px;}\n          .sidenav a {font-size: 18px;}\n        }\n        ul.menu li {\n          display:inline;\n        }\n        ul#lista li {\n          display: list-item;\n        }\n        \n        ul.lista_dados li {\n          display: list-item;\n        }\n        \n        ul.lista_def li {\n          display: list-item;\n        }\n        \n        article {\n          float: left;\n          padding: 20px;\n          width: 50%;\n          background-color: #f1f1f1;\n         \n        \n        }\n        \n        * {\n          box-sizing: border-box;\n        }\n        \n        /* Create two columns/boxes that floats next to each other */\n        nav {\n          float: left;\n          width: 50%;\n          background: #ccc;\n          padding: 20px;\n          \n        }\n        \n        nav ul {\n          list-style-type: none;\n          padding: 0;\n        }\n        \n        .def:hover {\n            opacity: 0.5;\n        }\n        .mostrar{\n            display: none;\n        }\n        /*------------------------------progress bar stuff--------------------------*/\n        .meter {\n          box-sizing: content-box;\n          height: 20px; /* Can be anything */\n          width: 40%;\n          position: relative;\n          margin: -1.5% 0 20px 0; /* Just for demo spacing */\n          background: #555;\n          border-radius: 25px;\n          padding: 10px;\n          box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.3);\n        }\n        .meter > span {\n          display: block;\n          height: 100%;\n          border-top-right-radius: 8px;\n          border-bottom-right-radius: 8px;\n          border-top-left-radius: 20px;\n          border-bottom-left-radius: 20px;\n          background-color: rgb(43, 194, 83);\n          background-image: linear-gradient(\n            center bottom,\n            rgb(43, 194, 83) 37%,\n            rgb(84, 240, 84) 69%\n          );\n          box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3),\n            inset 0 -2px 6px rgba(0, 0, 0, 0.4);\n          position: relative;\n          overflow: hidden;\n        }\n        .meter > span:after,\n        .animate > span > span {\n          content: \"\";\n          position: absolute;\n          top: 0;\n          left: 0;\n          bottom: 0;\n          right: 0;\n          background-image: linear-gradient(\n            -45deg,\n            rgba(255, 255, 255, 0.2) 25%,\n            transparent 25%,\n            transparent 50%,\n            rgba(255, 255, 255, 0.2) 50%,\n            rgba(255, 255, 255, 0.2) 75%,\n            transparent 75%,\n            transparent\n          );\n          z-index: 1;\n          background-size: 50px 50px;\n          animation: move 2s linear infinite;\n          border-top-right-radius: 8px;\n          border-bottom-right-radius: 8px;\n          border-top-left-radius: 20px;\n          border-bottom-left-radius: 20px;\n          overflow: hidden;\n        }\n\n        .animate > span:after {\n          display: none;\n        }\n\n        @keyframes move {\n          0% {\n            background-position: 0 0;\n          }\n          100% {\n            background-position: 50px 50px;\n          }\n        }\n\n        .orange > span {\n          background-image: linear-gradient(#f1a165, #f36d0a);\n        }\n\n        .red > span {\n          background-image: linear-gradient(#f0a3a3, #f42323);\n        }\n\n        .nostripes > span > span,\n        .nostripes > span::after {\n          background-image: none;\n        }\n\n        /*---------------------------checkbox settings ---------------*/\n        input[type=checkbox]\n        {\n          /* Double-sized Checkboxes */\n          -ms-transform: scale(2); /* IE */\n          -moz-transform: scale(2); /* FF */\n          -webkit-transform: scale(2); /* Safari and Chrome */\n          -o-transform: scale(2); /* Opera */\n          transform: scale(2);\n          padding: 10px;\n        }\n\n        /* Might want to wrap a span around your checkbox text */\n        .checkboxtext\n        {\n          /* Checkbox text */\n          font-size: 110%;\n          display: inline;\n        }\n\n        body {\n          background: #333;\n          font-family: system-ui, sans-serif;\n        }\n        </style>\n\n        <script type=\"text/javascript\">\n             \n            var get='';\n\n            var mostrar='';\n            \n            var nr_nodos=" + nr_nodos + "\n            \n\n            //fun\u00E7\u00E3o que trata dos dados ap\u00F3s clicarmos no bot\u00E3o de enviar\n            function validateFormOnSubmit(theForm) {\n\n                var titulo=document.getElementById('titulo').innerHTML;\n    \n                var titulo_sep = titulo.split(\" \");\n                var remove_value=''\n                i=titulo_sep[1];\n        \n                var sala = theForm.sala.value;\n                var  freq_tem= theForm.freq_tem.value;\n                var freq_fum = theForm.freq_fum.value;\n                var dev_id = theForm.dev_id.value;\n              \n                if(document.getElementById(''+dev_id+'').checked) {\n                  remove_value=\"remover\";\n                } \n\n                var today = new Date();\n    \n                var date = today.getDate()+'/'+(today.getMonth()+1)+'/'+today.getFullYear();\n    \n                var time = today.getHours() + \":\" + today.getMinutes() + \":\" + today.getSeconds();\n    \n                var dateTime = date+' '+time+'\u21E8';\n    \n                var list = document.getElementById('lista');\n                var entry = document.createElement('li');\n                entry.appendChild(document.createTextNode(dateTime));\n                entry.appendChild(document.createTextNode('Foi realizada uma mudan\u00E7a de configura\u00E7\u00E3o do '+dev_id+''));\n                list.appendChild(entry);\n\n                get+='&message_number='+dateTime+'Foi realizada uma mudan\u00E7a de configura\u00E7\u00E3o do '+dev_id+'&pedido_update_id='+dev_id+'&freq_tem='+freq_tem+'&freq_fum='+freq_fum+'&sala_destino='+sala+'&remove_node='+remove_value\n\n                location.replace('http://localhost:8080/?sala='+i+''+get)\n            \n                \n                return false;\n            }\n\n            window.addEventListener('scroll',function() {\n              //When scroll change, you save it on localStorage.\n              localStorage.setItem('scrollPosition',window.scrollY);\n          },false);\n        \n        </script>\n        \n        </head>\n        <body>\n        \n        <!---------------------------MENU LATERAL----------------------------->\n        \n        <div id=\"menu_lateral\" class=\"sidenav\">\n        " + salas(Room_array, IDM_array, show_room_array) + "\n        </div>\n        \n        <div class=\"main\">\n        \n            <!---------------------------PARTE SUPERIOR----------------------------->\n            <header>\n                  " + titulo() + "<p style=\"color: #eee;\">Indice de manuten\u00E7\u00E3o: " + IDM + "%</p>\n                  <span>\n                  <div class=\"meter red\">\n                    <span style=\"width: " + IDM + "%\"></span>\t\t\t\t\n                  </div>\n                  " + estado_cond() + "\n                  <button onclick=\"confirmar_reset(" + sala + ")\" id=\"reset_IDM\" style=\"margin-left: 15px; padding: 10px;\">Reset IDM </button>\n                  <span/>\n            </header>\n        \n          <section style=\"margin-top: 10px\">\n        \n              <!---------------------------PARTE INTERIOR ESQUERDA----------------------------->\n          <nav id=\"nodos\">\n        \n            " + nodos() + "\n      \n          </nav>\n          <!---------------------------PARTE INTERIOR DIREITA----------------------------->\n          <article>\n            <h1>Registo de acontecimentos:</h1>\n                <ul id=\"lista\" >\n                  " + message_list(array_fumo) + "\n                </ul> \n          </article>\n        </section>\n        \n        </div>\n        \n        <!---------------------------SCRIPTS----------------------------->\n        \n        <script type=\"text/javascript\">\n            \n        //mostrar ou n\u00E3o a interface de mostragem dos dados\n            function mudar_dados(i){\n\n\n                if(document.getElementById('dados'+i).src.indexOf(\"images/white_server.png\") != -1){\n                  document.getElementById('dados'+i).src=\"images/grey_server.png\"\n                }\n                else if(document.getElementById('dados'+i).src.indexOf(\"images/grey_server.png\") != -1){\n                  document.getElementById('dados'+i).src=\"images/grey_server.png\"\n                }\n                else{\n                  document.getElementById('dados'+i).src=\"images/red_server.png\"\n                }\n\n                document.getElementById('def'+i).src=\"images/def_white.png\"\n        \n                document.getElementById('lista_dados'+i).classList.remove('mostrar');\n                document.getElementById('lista_dados'+i).classList.add('lista_dados');\n                document.getElementById('lista_def'+i).classList.remove('lista_def');\n                document.getElementById('lista_def'+i).classList.add('mostrar');\n\n                mostrar+='&mostrar='+i+'sim'\n\n                clearInterval(intervalId);\n                intervalId = setInterval(reload, 4000);\n                console.log(\"reload to timer\")\n                \n            }\n\n            //mostrar ou n\u00E3o a interface de mudan\u00E7a de defeni\u00E7\u00F5es\n            function mudar_def(i){\n\n                if(document.getElementById('dados'+i).src.indexOf(\"images/grey_server.png\") != -1){\n                  document.getElementById('dados'+i).src=\"images/white_server.png\"                \n                }\n                else if(document.getElementById('dados'+i).src.indexOf(\"images/white_server.png\") != -1){\n                  document.getElementById('dados'+i).src=\"images/white_server.png\"\n                }\n                else{\n                  document.getElementById('dados'+i).src=\"images/red_server.png\"\n                }\n                document.getElementById('def'+i).src=\"images/def_grey.png\"\n                document.getElementById('lista_dados'+i).classList.remove('lista_dados');\n                document.getElementById('lista_dados'+i).classList.add('mostrar');\n                document.getElementById('lista_def'+i).classList.remove('mostrar');\n                document.getElementById('lista_def'+i).classList.add('lista_def');\n\n                mostrar+='&mostrar='+i+'nao'\n\n                clearInterval(intervalId);\n                intervalId = setInterval(reload, 4000);\n                console.log(\"reload to timer\")\n            }\n            \n            //fun\u00E7\u00E3o que atua quando procuramos mudar o valor do ar condicionado colocando nas menssagens laterais\n            function mudar_ac(){\n    \n                var titulo=document.getElementById('titulo').innerHTML;\n    \n                var titulo_sep = titulo.split(\" \");\n    \n                sala=titulo_sep[1];\n    \n                if(document.getElementById('ar_condicionado').innerHTML==\"Desactivar Ar Condicionado\"){\n        \n                    document.getElementById('ar_condicionado').innerHTML=\"Ativar Ar Condicionado\"\n        \n                    var today = new Date();\n        \n                    var date = today.getDate()+'/'+(today.getMonth()+1)+'/'+today.getFullYear();\n        \n                    var time = today.getHours() + \":\" + today.getMinutes() + \":\" + today.getSeconds();\n        \n                    var dateTime = date+' '+time+'\u21E8';\n        \n                    var list = document.getElementById('lista');\n                    var entry = document.createElement('li');\n                    entry.appendChild(document.createTextNode(dateTime));\n                    entry.appendChild(document.createTextNode('Ar condicionado desativado sala: '));\n                    entry.appendChild(document.createTextNode(sala));\n                    list.appendChild(entry);\n                    \n                    get+='&message_number='+dateTime+'Ar condicionado desativado sala: '+sala+'&mudar_cond='+0\n\n                    location.replace('http://localhost:8080/?sala='+sala+''+get+''+mostrar)\n        \n                }\n                else{\n                    document.getElementById('ar_condicionado').innerHTML=\"Desactivar Ar Condicionado\"\n        \n                    var today = new Date();\n        \n                    var date = today.getDate()+'/'+(today.getMonth()+1)+'/'+today.getFullYear();\n        \n                    var time = today.getHours() + \":\" + today.getMinutes() + \":\" + today.getSeconds();\n        \n                    var dateTime = date+' '+time+'\u21E8';\n        \n                    var list = document.getElementById('lista');\n                    var entry = document.createElement('li');\n                    entry.appendChild(document.createTextNode(dateTime));\n                    entry.appendChild(document.createTextNode('Ar condicionado ativado sala: '));\n\n                    entry.appendChild(document.createTextNode(sala));\n                    list.appendChild(entry);\n\n                    get+='&message_number='+dateTime+'Ar condicionado ativado sala: '+sala+'&mudar_cond='+1\n\n                    location.replace('http://localhost:8080/?sala='+sala+''+get+''+mostrar)\n\n                }         \n            }\n\n            function confirmar_reset(i){\n\n              if(window.confirm(\"Deseja mesmo dar reset ao IDM da sala:\"+i+\"?\")){\n\n                var today = new Date();\n        \n                var date = today.getDate()+'/'+(today.getMonth()+1)+'/'+today.getFullYear();\n    \n                var time = today.getHours() + \":\" + today.getMinutes() + \":\" + today.getSeconds();\n    \n                var dateTime = date+' '+time+'\u21E8';\n\n                get+='&message_number='+dateTime+'Foi realizado o reset do IDM sala: '+i+''\n\n                location.replace('http://localhost:8080/?sala='+i+''+get+''+'&reset_IDM=true')\n              }\n              \n            }\n            //fun\u00E7\u00E3o que atua quando clicamos para mudar de sala\n            function mudar_sala(i){              \n                sala=i\n       \n                localStorage.removeItem('scrollPosition');\n\n                \n                for (let index = 1; index <= nr_nodos; index++) {\n     \n                  mostrar+='&mostrar='+index+'sim'\n                } \n                                \n                \n                location.replace('http://localhost:8080/?sala='+i+''+get+''+mostrar)\n\n\n            }\n\n            //funcao que aumenta o intervalo de reload temporariamente quando o utilizador interage com o formul\u00E1rio\n            function hold(){\n\n              clearInterval(intervalId);\n              intervalId = setInterval(reload, 20000);\n\n            }\n            \n            //funcao que atua no reload da p\u00E1gina \n            function reload(){\n\n              var titulo=document.getElementById('titulo').innerHTML;\n    \n              var titulo_sep = titulo.split(\" \");\n  \n              i=titulo_sep[1];\n\n              location.replace('http://localhost:8080/?sala='+i+''+get+''+mostrar)\n\n              \n\n              }\n          \n            //intervalo para dar auto reload \u00E0 janela\n            var intervalId = setInterval(reload, 5000);\n\n            //fun\u00E7\u00E3o para manter o mesmo n\u00EDvel de scroll na p\u00E1gina\n              window.addEventListener('load',function() {\n                if(localStorage.getItem('scrollPosition') !== null)\n                   window.scrollTo(0, localStorage.getItem('scrollPosition'));\n            },false);\n    \n        </script>\n        \n        </body>\n        </html> \n      ");
                                         return [2 /*return*/];
                                 }
                             });
                         });
                     }
-                    var smoke_rate, temp_rate, remove_node, sala_destino, params, data, err_2, params1, data, params2, data1, err_3, err_4, params3, data, err_5;
+                    var smoke_rate, temp_rate, remove_node, sala_destino, params, data, err_2, params1, data, params2, data1, err_3, params7, data, err_4, err_5, params3, data, err_6;
                     return __generator(this, function (_a) {
                         switch (_a.label) {
                             case 0:
-                                if (!(typeof dev_id != 'undefined')) return [3 /*break*/, 13];
+                                if (!(typeof dev_id != 'undefined')) return [3 /*break*/, 18];
                                 smoke_rate = req.query.freq_fum;
                                 temp_rate = req.query.freq_tem;
                                 remove_node = req.query.remove_node;
-                                console.log("remover nodo");
-                                console.log(remove_node);
                                 sala_destino = req.query.sala_destino;
                                 if (!(remove_node == "remover")) return [3 /*break*/, 5];
                                 params = {
@@ -603,9 +567,9 @@ app.get('/', function (req, res) {
                                 return [3 /*break*/, 4];
                             case 4:
                                 sala_anterior = 0;
-                                return [3 /*break*/, 13];
+                                return [3 /*break*/, 18];
                             case 5:
-                                _a.trys.push([5, 11, , 12]);
+                                _a.trys.push([5, 16, , 17]);
                                 params1 = {
                                     ExpressionAttributeNames: {
                                         "#SR": "Smoke_Rate",
@@ -632,14 +596,13 @@ app.get('/', function (req, res) {
                                             N: "" + dev_id + ""
                                         }
                                     },
-                                    //ReturnValues: "ALL_NEW", 
                                     TableName: "configuration",
                                     UpdateExpression: "SET #SR = :y, #TR = :t, #RI = :z, #RW = :w"
                                 };
                                 return [4 /*yield*/, dbclient.send(new UpdateItemCommand(params1))];
                             case 6:
                                 data = _a.sent();
-                                if (!(show_room_array[Room_array.indexOf('' + sala_destino + '')] == '0')) return [3 /*break*/, 10];
+                                if (!(show_room_array[Room_array.indexOf('' + sala_destino + '')] == '0')) return [3 /*break*/, 11];
                                 _a.label = 7;
                             case 7:
                                 _a.trys.push([7, 9, , 10]);
@@ -660,31 +623,60 @@ app.get('/', function (req, res) {
                                     TableName: "ar_condicionado_sala",
                                     UpdateExpression: "SET #S = :y"
                                 };
-                                console.log(params1);
                                 return [4 /*yield*/, dbclient.send(new UpdateItemCommand(params2))];
                             case 8:
                                 data1 = _a.sent();
-                                //console.log("Success - item added or updated", data);
-                                //return data1;
                                 show_room_array[Room_array.indexOf('' + sala_destino + '')] = 1;
                                 return [3 /*break*/, 10];
                             case 9:
                                 err_3 = _a.sent();
                                 console.log("Error", err_3);
                                 return [3 /*break*/, 10];
-                            case 10: return [3 /*break*/, 12];
+                            case 10: return [3 /*break*/, 15];
                             case 11:
+                                if (!(typeof show_room_array[Room_array.indexOf('' + sala_destino + '')] == 'undefined')) return [3 /*break*/, 15];
+                                params7 = {
+                                    RequestItems: {
+                                        ar_condicionado_sala: [
+                                            {
+                                                PutRequest: {
+                                                    Item: {
+                                                        ROOM_ID: { N: "" + sala_destino + "" },
+                                                        AC: { N: "0" },
+                                                        IDM: { N: "0" },
+                                                        show1: { N: "1" }
+                                                    }
+                                                }
+                                            },
+                                        ]
+                                    }
+                                };
+                                _a.label = 12;
+                            case 12:
+                                _a.trys.push([12, 14, , 15]);
+                                return [4 /*yield*/, dbclient.send(new BatchWriteItemCommand(params7))];
+                            case 13:
+                                data = _a.sent();
+                                Room_array.push(sala_destino);
+                                show_room_array.push('1');
+                                return [3 /*break*/, 15];
+                            case 14:
                                 err_4 = _a.sent();
                                 console.log("Error", err_4);
-                                return [3 /*break*/, 12];
-                            case 12:
+                                return [3 /*break*/, 15];
+                            case 15: return [3 /*break*/, 17];
+                            case 16:
+                                err_5 = _a.sent();
+                                console.log("Error", err_5);
+                                return [3 /*break*/, 17];
+                            case 17:
                                 sala_anterior = 0;
-                                _a.label = 13;
-                            case 13:
-                                if (!(typeof mudar_ac != 'undefined')) return [3 /*break*/, 18];
-                                _a.label = 14;
-                            case 14:
-                                _a.trys.push([14, 16, , 17]);
+                                _a.label = 18;
+                            case 18:
+                                if (!(typeof mudar_ac != 'undefined')) return [3 /*break*/, 23];
+                                _a.label = 19;
+                            case 19:
+                                _a.trys.push([19, 21, , 22]);
                                 params3 = {
                                     ExpressionAttributeNames: {
                                         "#AC": "AC"
@@ -699,22 +691,21 @@ app.get('/', function (req, res) {
                                             N: "" + sala + ""
                                         }
                                     },
-                                    //ReturnValues: "ALL_NEW", 
                                     TableName: "ar_condicionado_sala",
                                     UpdateExpression: "SET  #AC = :t"
                                 };
                                 return [4 /*yield*/, dbclient.send(new UpdateItemCommand(params3))];
-                            case 15:
+                            case 20:
                                 data = _a.sent();
-                                return [3 /*break*/, 17];
-                            case 16:
-                                err_5 = _a.sent();
-                                console.log("Error", err_5);
-                                return [3 /*break*/, 17];
-                            case 17:
+                                return [3 /*break*/, 22];
+                            case 21:
+                                err_6 = _a.sent();
+                                console.log("Error", err_6);
+                                return [3 /*break*/, 22];
+                            case 22:
                                 atualizar_ac = 1;
-                                _a.label = 18;
-                            case 18:
+                                _a.label = 23;
+                            case 23:
                                 contagem_de_nodos();
                                 return [2 /*return*/];
                         }
@@ -740,7 +731,6 @@ app.get('/', function (req, res) {
                                     N: "" + sala + ""
                                 }
                             },
-                            //ReturnValues: "ALL_NEW", 
                             TableName: "ar_condicionado_sala",
                             UpdateExpression: "SET #IDM = :t"
                         };
@@ -784,7 +774,7 @@ app.get('/', function (req, res) {
                     case 6:
                         max_of_array = Math.max.apply(Math, Room_array);
                         nr_salas = max_of_array;
-                        //identificação de que sala deverá ser apresentada inicialmente caso a sala 1 não exista
+                        //identificação de que sala deverá ser apresentada inicialmente, por default é a 1 mas poderá não existir
                         if (sala == 1) {
                             console.log(typeof show_room_array[Room_array.indexOf('' + 1 + '')] == 'undefined');
                             if (show_room_array[Room_array.indexOf('' + 1 + '')] == 0 || typeof show_room_array[Room_array.indexOf('' + 1 + '')] == 'undefined') {

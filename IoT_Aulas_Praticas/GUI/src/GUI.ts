@@ -3,7 +3,7 @@ import express = require('express');
 import { textSpanEnd } from 'typescript';
 import ts = require('typescript');
 
-const { DynamoDBClient, ScanCommand, QueryCommand , UpdateItemCommand, DeleteItemCommand} = require("@aws-sdk/client-dynamodb");
+const { DynamoDBClient, ScanCommand, QueryCommand , UpdateItemCommand, DeleteItemCommand, BatchWriteItemCommand} = require("@aws-sdk/client-dynamodb");
 
 // Set the AWS Region
 const REGION = "eu-west-1"; //e.g. "us-east-1"
@@ -186,8 +186,7 @@ function message_list(array_fumo){
     for (let index = 0; index < array_fumo.length; index++) {
 
       x+='<li style="color:red">'+array_fumo[index]+'</li>'
-      console.log("entrou")
-      console.log(array_fumo)
+
     }
 
     for (let index = 1; index < array_mensagens.length; index++) {
@@ -447,7 +446,7 @@ app.get('/', (req, res) => {
                   TableName: "ar_condicionado_sala", 
                   UpdateExpression: "SET #S = :y"
                 };
-              console.log(params1)
+              //console.log(params1)
               var data1 = await dbclient.send(new UpdateItemCommand(params2));
               show_room_array[Room_array.indexOf(''+sala_destino+'')]=1
             } catch (err) {
@@ -455,6 +454,33 @@ app.get('/', (req, res) => {
             }
   
           }
+          else if(typeof show_room_array[Room_array.indexOf(''+sala_destino+'')]=='undefined'){
+            var params7 = {
+              RequestItems: {
+                ar_condicionado_sala: [
+              {
+                  PutRequest: {
+                      Item: {
+                          ROOM_ID: { N: ""+sala_destino+"" },
+                          AC: { N: "0" },
+                          IDM: { N: "0" },
+                          show1: { N: "1" },
+                      }
+                  }
+              },
+                ],
+              },
+            };
+            try {
+              var data = await dbclient.send(new BatchWriteItemCommand(params7));
+              Room_array.push(sala_destino)
+              show_room_array.push('1')
+              //console.log("Success", data);
+            } catch (err) {
+              console.log("Error", err);
+            }
+          }
+
         } catch (err) {
           console.log("Error", err);
         }
